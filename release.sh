@@ -120,7 +120,7 @@ do
   sed -e "s/${vmatch}/${new_version}/g" -i "" ${file}
 done
 
-sed -i "" -e "s/^version_info *=.*$/version_info = (${new_major}, ${new_minor}, 0)/" sagemaker_run_notebook/server_extension/_version.py
+sed -i "" -e "s/^version_info *=.*$/version_info = (${new_major}, ${new_minor}, ${new_patch})/" sagemaker_run_notebook/server_extension/_version.py
 sed -i "" -e 's/^\( *\"version": *"\)[^"]*\(".*$\)/\1'${new_version}'\2/'  labextension/package.json
 
 # Build the release distribution
