@@ -144,7 +144,7 @@ def execute_notebook(
     #     + "-"
     #     + timestamp
     # )
-    job_name = parameters['JOB_ID']
+    job_name = parameters["JOB_ID"]
 
     input_directory = "/opt/ml/processing/input/"
     local_input = input_directory + os.path.basename(input_path)
@@ -262,7 +262,7 @@ def download_notebook(job_name, output=".", session=None):
     prefix = desc["ProcessingOutputConfig"]["Outputs"][0]["S3Output"]["S3Uri"]
     notebook = os.path.basename(desc["Environment"]["PAPERMILL_OUTPUT"])
     s3path = "{}/{}".format(prefix, notebook)
-    
+
     print(prefix, notebook)
 
     if not os.path.exists(output):
@@ -934,7 +934,7 @@ def schedule(
     extra_args = {}
     for f in extra_fns:
         extra_args = f(extra_args)
-    
+
     if notebook:
         notebook = os.path.basename(notebook)
 

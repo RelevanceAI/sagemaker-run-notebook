@@ -49,7 +49,7 @@ def execute_notebook(
     #     + "-"
     #     + timestamp
     # )
-    job_name = parameters['JOB_ID']
+    job_name = parameters["JOB_ID"]
     input_directory = "/opt/ml/processing/input/"
     local_input = input_directory + os.path.basename(input_path)
     result = "{}-{}{}".format(nb_name, timestamp, nb_ext)

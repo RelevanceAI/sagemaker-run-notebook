@@ -10,7 +10,7 @@
 #
 # They all live in the subdirectory "manual_dist/"
 
-VERSION=0.20.0
+VERSION=0.21.0
 
 make artifacts docs
 
@@ -20,6 +20,6 @@ mkdir -p manual_dist
 cp build/dist/sagemaker_run_notebook-${VERSION}.tar.gz manual_dist/
 cp scripts/lifecycle-config/start.sh manual_dist/
 cp scripts/studio/install-run-notebook.sh manual_dist/
-gtar czf manual_dist/container.tar.gz container
+tar czf manual_dist/container.tar.gz container
 cp sagemaker_run_notebook/cloudformation.yml manual_dist/
-(cd docs/build/html; gtar czf ../../../manual_dist/docs.tar.gz --transform 's,^\./,sagemaker-run-notebook-docs/,' .)
+(cd docs/build/html; tar czf ../../../manual_dist/docs.tar.gz --transform 's,^\./,sagemaker-run-notebook-docs/,' .)
