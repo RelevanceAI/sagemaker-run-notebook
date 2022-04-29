@@ -73,16 +73,7 @@ echo $IMAGE_URI
 
 # If the repository doesn't exist in ECR, create it.
 
-aws --profile ${AWS_PROFILE} ecr describe-repositories --repository-names "${IMAGE_NAME}" > /dev/null 2>&1
-
-if [ $? -ne 0 ]
-then
-    aws --profile ${AWS_PROFILE} ecr create-repository --repository-name "${IMAGE_NAME}" > /dev/null
-    if [ $? -ne 0 ]
-    then
-        exit 255
-    fi
-fi
+aws --profile ${AWS_PROFILE}  ecr describe-repositories --repository-names ${IMAGE_NAME} --region ${AWS_REGION} || aws --profile ${AWS_PROFILE}  ecr create-repository --repository-name ${IMAGE_NAME} --region ${AWS_REGION}
 
 # Docker login has changed in aws-cli version 2. We support both flavors.
 AWS_CLI_MAJOR_VERSION=$(aws --version | sed 's%^aws-cli/\([0-9]*\)\..*$%\1%')

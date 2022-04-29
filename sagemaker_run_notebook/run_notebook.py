@@ -139,11 +139,13 @@ def execute_notebook(
     nb_name, nb_ext = os.path.splitext(base)
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 
-    job_name = (
-        ("papermill-" + re.sub(r"[^-a-zA-Z0-9]", "-", nb_name))[: 62 - len(timestamp)]
-        + "-"
-        + timestamp
-    )
+    # job_name = (
+    #     ("papermill-" + re.sub(r"[^-a-zA-Z0-9]", "-", nb_name))[: 62 - len(timestamp)]
+    #     + "-"
+    #     + timestamp
+    # )
+    job_name = parameters['JOB_ID']
+
     input_directory = "/opt/ml/processing/input/"
     local_input = input_directory + os.path.basename(input_path)
     result = "{}-{}{}".format(nb_name, timestamp, nb_ext)
@@ -351,12 +353,12 @@ def describe_runs(n=0, notebook=None, rule=None, session=None):
     session = ensure_session(session)
     client = session.client("sagemaker")
     paginator = client.get_paginator("list_processing_jobs")
-    page_iterator = paginator.paginate(NameContains="papermill-")
+    page_iterator = paginator.paginate(NameContains="workflow-")
 
     for page in page_iterator:
         for item in page["ProcessingJobSummaries"]:
             job_name = item["ProcessingJobName"]
-            if not job_name.startswith("papermill-"):
+            if not job_name.startswith("workflow-"):
                 continue
             d = describe_run(job_name, session)
 
@@ -384,7 +386,7 @@ def describe_run(job_name, session=None):
       {'Notebook': 'scala-spark-test.ipynb',
        'Rule': '',
        'Parameters': '{"input": "s3://notebook-testing/const.txt"}',
-       'Job': 'papermill-scala-spark-test-2020-10-21-20-00-11',
+       'Job': 'workflow-cluster-<datetime.now().timestamp()>',
        'Status': 'Completed',
        'Failure': None,
        'Created': datetime.datetime(2020, 10, 21, 13, 0, 12, 817000, tzinfo=tzlocal()),
@@ -521,7 +523,7 @@ class NotebookRunTracker:
         new_runs = []
         async for job in self.new_jobs.get_new():
             job_name = job["ProcessingJobName"]
-            if not job_name.startswith("papermill-"):
+            if not job_name.startswith("workflow-"):
                 continue
             await asyncio.sleep(0)
             self.log.debug(f"Describing new job: {job_name}")
@@ -839,7 +841,6 @@ RULE_PREFIX = "RunNotebook-"
 
 
 def schedule(
-    
     rule_name,
     notebook=None,
     schedule=None,

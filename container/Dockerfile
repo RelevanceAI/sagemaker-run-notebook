@@ -4,17 +4,9 @@ FROM $BASE_IMAGE
 ENV JUPYTER_ENABLE_LAB yes
 ENV PYTHONUNBUFFERED TRUE
 
-RUN if which python; then echo Python already installed; else \
-    echo Installing Python; \
-    apt update\
-    apt install -y python3 python3-pip && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
-    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1 && \
-    pip3 install --upgrade pip && \
-    rm -rf /var/lib/apt/lists/*; fi
-RUN  apt-get update && apt-get install gcc python3-dev -yqq --no-install-recommends && apt-get clean 
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install papermill jupyter nteract-scrapbook boto3 requests==2.20.1 && pip install -r /tmp/requirements.txt
+RUN pip install -U pip
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 ENV PYTHONUNBUFFERED=TRUE
 ENV PATH="/opt/program:${PATH}"
