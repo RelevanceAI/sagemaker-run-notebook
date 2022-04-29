@@ -33,18 +33,49 @@
 # We always update minor versions now. This script will have to be extended to support
 # major version and patch version increments.
 
+
+
 tag=$(git describe --tags --abbrev=0 --match 'v[0-9][0-9.]*')
 old_major=$(sed 's/v\([0-9]*\)\.\([0-9]*\)\..*$/\1/' <<< "$tag")
 old_minor=$(sed 's/v\([0-9]*\)\.\([0-9]*\)\..*$/\2/' <<< "$tag")
+old_patch=${tag: -1}
 
-echo "This version = ${tag}, major=${old_major}, minor=${old_minor}"
+echo "This version = ${tag}, major=${old_major}, minor=${old_minor}, patch=${old_patch}"
 
-new_major=${old_major}
-new_minor=$((${old_minor} + 1))
-new_version="${new_major}.${new_minor}.0"
+prog=$0
+
+function usage {
+    echo "Usage: $1 --patch"
+    echo "       --patch: increase patch version"
+    echo "       --minor: increase minor version"
+    echo "       --minor: increase major version"
+}
+
+if [ "$1" == "" ]
+then
+    usage ${prog}
+    exit 1
+elif [ "$1" == "--patch" ]
+then
+  new_major=${old_major}
+  new_minor=${old_minor}
+  new_patch=$((${old_patch} + 1))
+elif [ "$1" == "--minor" ]
+then
+  new_major=${old_major}
+  new_minor=$((${old_minor} + 1))
+  new_patch==${old_patch}
+elif [ "$1" == "--major" ]
+then
+  new_major=$((${old_major} + 1))
+  new_minor=${old_minor}
+  new_patch=${old_patch}
+fi
+
+new_version="${new_major}.${new_minor}.${new_patch}"
 new_tag="v${new_version}"
 
-echo "Next version = ${new_tag}, major=${new_major}, minor=${new_minor}"
+echo "Next version = ${new_tag}, major=${new_major}, minor=${new_minor}, patch=${new_patch}"
 
 # Check that we're ready to do a release
 #
