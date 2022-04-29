@@ -26,7 +26,7 @@ set -e
 sudo -u ec2-user -i <<'EOF'
 
 # PARAMETERS
-VERSION=0.21.1
+VERSION=0.21.2
 
 EXTENSION_NAME=sagemaker_run_notebook
 
