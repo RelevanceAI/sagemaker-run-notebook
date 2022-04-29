@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.21.0 (2022-04-22)
+
+This release supports - 
+
+- S3 URL input upon invoke. 
+- changing Processing job name to param "JOB_ID" of format "workflow-cluster-<datetime.now().timestamp()>" - from incoming request payload
+
 ## v0.20.0 (2021-12-09)
 
 This release provides support for JupyterLab 2.x.
