@@ -4,7 +4,7 @@
 
 This release supports - 
 
-- Removing "JOB_ID" from params to reduce chance of hitting [265 char limit on Sagemaker Processing container(https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProcessingJob.html)
+- Removing "JOB_ID" from params to reduce chance of hitting [265 char limit on Sagemaker Processing container](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProcessingJob.html)
 ## v0.21.0 (2022-04-29)
 
 This release supports - 
