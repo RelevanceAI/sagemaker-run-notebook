@@ -102,6 +102,7 @@ def execute_notebook(
     if extra_args is not None:
         api_args = merge_extra(api_args, extra_args)
 
+    parameters.pop("JOB_ID", None)
     api_args["Environment"]["PAPERMILL_INPUT"] = local_input
     api_args["Environment"]["PAPERMILL_OUTPUT"] = local_output + result
     if os.environ.get("AWS_DEFAULT_REGION") != None:

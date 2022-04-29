@@ -60,7 +60,7 @@ AWS_REGION=$(aws configure get region)
 AWS_REGION=${AWS_REGION:-ap-southeast-2}
 echo "Region ${AWS_REGION}"
 
-AWS_PROFILE=${3:-'relevanceai'}
+AWS_PROFILE=${3:-'relevanceai-sandbox'}
 
 
 DATE=$(date +%Y%m%d%H%M%S)
