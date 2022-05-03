@@ -22,18 +22,20 @@ tags_metadata = []
 
 event = {
     "body": {
-	"JOB_ID": f"workflow-cluster-{int(datetime.now().timestamp())}", 
-	"JOB_TYPE": "sagemaker_processing",
-	"WORKFLOW_NAME": "core-cluster",
-	"CONFIG": {
-		"authorizationToken": "3a4b969f4d5fae6f850e:NjJJRzEzNEI4VlFEeXpMVG42Z3Q6UldUeDYxUlJTVFdoNjRWaGVwM25Vdw:us-east-1:JBQRqahx3jgp7ZsIq6sp2jtUoZJ3",
-		"dataset_id": "basic_subclustering"
-	}
+        "JOB_ID": f"workflow-cluster-{int(datetime.now().timestamp())}",
+        "JOB_TYPE": "sagemaker_processing",
+        "WORKFLOW_NAME": "core-cluster",
+        "CONFIG": {
+            "authorizationToken": "3a4b969f4d5fae6f850e:NjJJRzEzNEI4VlFEeXpMVG42Z3Q6UldUeDYxUlJTVFdoNjRWaGVwM25Vdw:us-east-1:JBQRqahx3jgp7ZsIq6sp2jtUoZJ3",
+            "dataset_id": "basic_subclustering",
+        },
     }
 }
 
 
-NOTEBOOK_EXECUTION_ROLE = os.environ['NOTEBOOK_EXECUTION_ROLE']='arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2'
+NOTEBOOK_EXECUTION_ROLE = os.environ[
+    "NOTEBOOK_EXECUTION_ROLE"
+] = "arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2"
 WORKFLOW_S3_URIS = {}
 
 # logging = logging.getlogging()
@@ -43,7 +45,7 @@ WORKFLOW_S3_URIS = {}
 ###############################################################################
 
 
-def handler(event, context: dict= {}):
+def handler(event, context: dict = {}):
     # body = json.loads(event["body"])
     body = event["body"]
     config = body["CONFIG"]
@@ -52,14 +54,11 @@ def handler(event, context: dict= {}):
     # logging.setLevel(level=logging_level)
     logging.basicConfig(level=logging_level)
 
-
     if os.getenv("SUPPORT_ACTIVATION_TOKEN"):
         client = Client(os.getenv("SUPPORT_ACTIVATION_TOKEN"))
         ds = client.Dataset("workflows-recipes")
         WORKFLOWS = ds.get_all_documents()
         WORKFLOW_S3_URIS = {w["_id"]: w["s3_url"] for w in WORKFLOWS if w.get("s3_url")}
-
-        
 
     WORKFLOW_NAME = body["WORKFLOW_NAME"]
     EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"]
@@ -79,7 +78,7 @@ def handler(event, context: dict= {}):
                 role=EXECUTION_ROLE,
                 parameters={**{"JOB_ID": body["JOB_ID"]}, **config},
             )
-            print(f'Invoked')
+            print(f"Invoked")
             if sm_job:
                 response_code = 200
 
@@ -91,15 +90,16 @@ def handler(event, context: dict= {}):
             logging.info(f"{WORKFLOW_NAME} workflow took {end-start:.4}s ... ")
     except Exception as e:
         response_code = 500
-        raise ValueError(f'{e}')
+        raise ValueError(f"{e}")
     response = {
         "statusCode": response_code,
         # "headers": {
         #     "x-custom-header" : "my custom header value"
         # },
-        "body": body
+        "body": body,
     }
     json.dumps(response, indent=2)
     return response
+
 
 handler(event)
