@@ -1,10 +1,17 @@
 # Changelog
 
+## v0.21.4 (2022-05-03)
+
+This release supports - 
+
+- Sagemaker Processing Job fails if notebook fail.
+
 ## v0.21.3 (2022-04-29)
 
 This release supports - 
 
 - Removing "JOB_ID" from params to reduce chance of hitting [265 char limit on Sagemaker Processing container](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProcessingJob.html)
+  
 ## v0.21.0 (2022-04-29)
 
 This release supports - 

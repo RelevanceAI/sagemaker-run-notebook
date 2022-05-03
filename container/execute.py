@@ -77,8 +77,8 @@ def run_notebook():
         # Printing this causes the exception to be in the training job logs, as well.
         print("Exception during processing: " + str(e) + "\n" + trc, file=sys.stderr)
         # A non-zero exit code causes the training job to be marked as Failed.
-        # sys.exit(255)
-        output_notebook = "xyzzy"  # Dummy for print, below
+        sys.exit(255)
+        # output_notebook = "xyzzy"  # Dummy for print, below
 
     if not os.path.exists(output_notebook):
         print("No output notebook was generated")
