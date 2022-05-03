@@ -75,9 +75,15 @@ def run_notebook():
         # with open(os.path.join(output_path, 'failure'), 'w') as s:
         #    s.write('Exception during processing: ' + str(e) + '\n' + trc)
         # Printing this causes the exception to be in the training job logs, as well.
-        print("Exception during processing: " + str(e) + "\n" + trc, file=sys.stderr)
+        error_message = "Exception during processing: " + str(e) + "\n" + trc
+        print(error_message, file=sys.stderr)
+
+        with open('/opt/ml/output/failure', 'w') as f:
+            print(f'Writing failure message to file...')
+            f.write(error_message)
         # A non-zero exit code causes the training job to be marked as Failed.
-        sys.exit(255)
+        print(f'Exiting Sagemaker job ...')
+        sys.exit(1)
         # output_notebook = "xyzzy"  # Dummy for print, below
 
     if not os.path.exists(output_notebook):
