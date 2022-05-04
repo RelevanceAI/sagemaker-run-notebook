@@ -25,7 +25,7 @@ def execute_notebook(
     account = session.client("sts").get_caller_identity()["Account"]
     if not image:
         if not stage_name:
-            stage_name="dev"
+            stage_name = "dev"
         image = f"sagemaker-run-notebook-{stage_name}"
     if "/" not in image:
         image = f"{account}.dkr.ecr.{region}.amazonaws.com/{image}"
@@ -106,7 +106,6 @@ def execute_notebook(
         api_args = merge_extra(api_args, extra_args)
 
     parameters.pop("JOB_ID", None)
-
 
     api_args["Environment"]["PAPERMILL_INPUT"] = local_input
     api_args["Environment"]["PAPERMILL_OUTPUT"] = local_output + result

@@ -35,7 +35,7 @@ JOB_LIMIT = 100
 ###############################################################################
 
 FILE_DIR = Path(__file__).parent
-EVENT_PATH = f'{FILE_DIR}/event.json'
+EVENT_PATH = f"{FILE_DIR}/event.json"
 
 
 def handler(event, context={}):
@@ -122,11 +122,19 @@ def check_sm_job_status(job_id: str):
 
 
 def main(args):
-    event['stage'] = args.stage
+    event["stage"] = args.stage
     handler(event)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--stage", default='dev', type=str, choices={"dev", "stg", "prd"}, help="Run debug mode")
+    parser.add_argument(
+        "-s",
+        "--stage",
+        default="dev",
+        type=str,
+        choices={"dev", "stg", "prd"},
+        help="Run debug mode",
+    )
     args = parser.parse_args()
     main(args)

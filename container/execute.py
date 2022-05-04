@@ -62,7 +62,7 @@ def run_notebook():
                     print("The notebook {} does not exist.".format(notebook_path))
                 raise
             print("Download complete")
-        
+
         if params_path.startswith("s3://"):
             print("Downloading params file {}".format(params_path))
             o = urlparse(params_path)
@@ -83,7 +83,6 @@ def run_notebook():
             os.chdir(params_dir)
             params = json.loads(open(params_file).read())
 
-
         os.chdir(notebook_dir)
 
         print("Executing {} with output to {}".format(notebook_file, output_notebook))
@@ -103,12 +102,12 @@ def run_notebook():
         error_message = "Exception during processing: " + str(e) + "\n" + trc
         print(error_message, file=sys.stderr)
 
-        with open('/opt/ml/output/message', 'w') as f:
-            print(f'Writing failure message to file...')
+        with open("/opt/ml/output/message", "w") as f:
+            print(f"Writing failure message to file...")
             f.write(error_message)
-            
+
         # A non-zero exit code causes the training job to be marked as Failed.
-        print(f'Exiting Sagemaker job ...')
+        print(f"Exiting Sagemaker job ...")
         sys.exit(1)
         # output_notebook = "xyzzy"  # Dummy for print, below
 

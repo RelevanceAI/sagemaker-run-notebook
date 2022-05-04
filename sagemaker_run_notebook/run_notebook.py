@@ -134,7 +134,7 @@ def execute_notebook(
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
         if stage not in image:
-            image = f'{image}-{stage}'
+            image = f"{image}-{stage}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
 
     if notebook == None:
@@ -288,7 +288,7 @@ def run_notebook(
     image,
     notebook,
     parameters={},
-    stage: Literal['dev', 'stg', 'prd'] = 'dev',
+    stage: Literal["dev", "stg", "prd"] = "dev",
     role=None,
     instance_type="ml.m5.large",
     output_prefix=None,
@@ -315,11 +315,11 @@ def run_notebook(
     session = ensure_session(session)
     if output_prefix is None:
         output_prefix = get_output_prefix()
-    
+
     s3path = upload_notebook(notebook, session)
 
     if stage not in image:
-        image = f'{image}-{stage}'
+        image = f"{image}-{stage}"
     job_name = execute_notebook(
         image=image,
         input_path=s3path,
@@ -632,7 +632,7 @@ lambda_description = (
 )
 
 
-def create_lambda(role=None, stage: Literal['dev', 'stg', 'prd'] = 'dev', session=None):
+def create_lambda(role=None, stage: Literal["dev", "stg", "prd"] = "dev", session=None):
     session = ensure_session(session)
     created = False
 
@@ -657,7 +657,7 @@ def create_lambda(role=None, stage: Literal['dev', 'stg', 'prd'] = 'dev', sessio
     while True:
         try:
             result = client.create_function(
-                FunctionName=f'{lambda_function_name}-{stage}',
+                FunctionName=f"{lambda_function_name}-{stage}",
                 Runtime="python3.8",
                 Role=role,
                 Handler="lambda_function.lambda_handler",
@@ -747,7 +747,7 @@ class InvokeException(Exception):
 def invoke(
     notebook=None,
     image="sagemaker-run-notebook",
-    stage: Literal['dev', 'stg', 'prd'] = 'dev',
+    stage: Literal["dev", "stg", "prd"] = "dev",
     input_path=None,
     output_prefix=None,
     parameters={},
@@ -799,7 +799,7 @@ def invoke(
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
         if stage not in image:
-            image = f'{image}-{stage}'
+            image = f"{image}-{stage}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
 
     if not role:
@@ -811,8 +811,7 @@ def invoke(
     if "/" not in role:
         account = session.client("sts").get_caller_identity()["Account"]
         role = "arn:aws:iam::{}:role/{}".format(account, role)
-    
-    
+
     if notebook:
         notebook_dir = os.path.dirname(notebook)
         notebook_file = os.path.basename(notebook)
@@ -846,7 +845,7 @@ def invoke(
         extra_args = f(extra_args)
 
     if stage not in image:
-        image = f'{image}-{stage}'
+        image = f"{image}-{stage}"
     args = {
         "image": image,
         "input_path": input_path,
@@ -861,7 +860,7 @@ def invoke(
     client = session.client("lambda")
 
     result = client.invoke(
-        FunctionName=f'{lambda_function_name}-{stage}',
+        FunctionName=f"{lambda_function_name}-{stage}",
         InvocationType="RequestResponse",
         LogType="None",
         Payload=json.dumps(args).encode("utf-8"),
@@ -883,7 +882,7 @@ def schedule(
     schedule=None,
     event_pattern=None,
     image="sagemaker-run-notebook",
-    stage: Literal['dev', 'stg', 'prd'] = 'dev',
+    stage: Literal["dev", "stg", "prd"] = "dev",
     input_path=None,
     output_prefix=None,
     parameters={},
@@ -953,7 +952,7 @@ def schedule(
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
         if stage not in image:
-            image = f'{image}-{stage}'
+            image = f"{image}-{stage}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
 
     if not role:
@@ -1001,7 +1000,7 @@ def schedule(
     account = session.client("sts").get_caller_identity()["Account"]
     region = session.region_name
     target_arn = "arn:aws:lambda:{}:{}:function:{}".format(
-        region, account, f'{lambda_function_name}-{stage}'
+        region, account, f"{lambda_function_name}-{stage}"
     )
 
     result = events.put_targets(

@@ -483,9 +483,7 @@ def cli_argparser():
         action="store_true",
     )
     createinfra_parser.add_argument(
-        "--stage",
-        help="Stage Name - [dev, stg, prd]",
-        default="dev"
+        "--stage", help="Stage Name - [dev, stg, prd]", default="dev"
     )
     createinfra_parser.set_defaults(func=create_infrastructure)
 
