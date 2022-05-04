@@ -6,9 +6,11 @@
 # Last Modified: Thursday, April 21st 2022,5:30:08 pm
 #####
 
+import argparse
 import os
 import sagemaker_run_notebook as run
 from relevanceai import Client
+import json
 
 from pathlib import Path
 import json
@@ -17,12 +19,19 @@ import logging
 
 from datetime import datetime
 
+from lambda_test.poll import handler as poll_handler
+
 
 tags_metadata = []
 
+
+FILE_DIR = Path(__file__).parent
+EVENT_PATH = f'{FILE_DIR}/event.json'
+JOB_ID = f"workflow-cluster-{int(datetime.now().timestamp())}"
+
 event = {
     "body": {
-        "JOB_ID": f"workflow-cluster-{int(datetime.now().timestamp())}",
+        "JOB_ID": JOB_ID,
         "JOB_TYPE": "sagemaker_processing",
         "WORKFLOW_NAME": "core-cluster",
         "CONFIG": {
@@ -32,10 +41,9 @@ event = {
     }
 }
 
+json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
 
-NOTEBOOK_EXECUTION_ROLE = os.environ[
-    "NOTEBOOK_EXECUTION_ROLE"
-] = "arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-dev"
+
 WORKFLOW_S3_URIS = {}
 
 # logging = logging.getlogging()
@@ -46,11 +54,13 @@ WORKFLOW_S3_URIS = {}
 
 
 def handler(event, context={}):
-    # stage = event["requestContext"]["stage"]
+    
     # body = json.loads(event["body"])
     body = event['body']
-    stage = 'dev'
+    stage = event['stage']
     config = body["CONFIG"]
+
+    NOTEBOOK_EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{stage}"
 
     print(json.dumps(body, indent=2))
 
@@ -75,8 +85,13 @@ def handler(event, context={}):
     if not WORKFLOW_S3_URIS:
         client = Client(SUPPORT_ACTIVATION_TOKEN)
         ds = client.Dataset("workflows-recipes")
-        WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url.{stage}"].exists())
-        WORKFLOW_S3_URIS = {w["_id"]: w["s3_url"][stage] for w in WORKFLOWS}
+        WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url"].exists())
+        for w in WORKFLOWS:
+            if w["s3_url"].get(stage):
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][stage] 
+            else:
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]['dev'] 
+
 
     WORKFLOW_NAME = body.get("WORKFLOW_NAME")
     NOTEBOOK_PATH = WORKFLOW_S3_URIS.get(WORKFLOW_NAME)
@@ -99,6 +114,7 @@ def handler(event, context={}):
             # print(NOTEBOOK_PATH)
             sm_job = run.invoke(
                 input_path=NOTEBOOK_PATH,
+                stage=stage,
                 image=f'sagemaker-run-notebook-{stage}',
                 role=EXECUTION_ROLE,
                 parameters={**{"JOB_ID": body["JOB_ID"]}, **config},
@@ -143,5 +159,13 @@ def return_response(response_code: int, body: dict) -> dict:
     response["body"] = json.dumps(body)
     return response
 
+def main(args):
+    event['stage'] = args.stage
+    handler(event)
+    poll_handler(event)
 
-handler(event)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--stage", default='dev', type=str, choices={"dev", "stg", "prd"}, help="Run debug mode")
+    args = parser.parse_args()
+    main(args)

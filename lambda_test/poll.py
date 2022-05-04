@@ -6,6 +6,7 @@
 # Last Modified: Thursday, April 21st 2022,5:30:08 pm
 #####
 
+import argparse
 import os
 
 from pathlib import Path
@@ -26,36 +27,20 @@ import boto3
 import uuid
 import logging
 
-# from sagemaker import get_execution_role
-# from sagemaker.inputs import TrainingInput
-# from sagemaker import image_uris
-# from sagemaker.estimator import Estimator
-# from sagemaker.tuner import IntegerParameter, CategoricalParameter, ContinuousParameter, HyperparameterTuner
-
-NOTEBOOK_EXECUTION_ROLE = os.environ[
-    "NOTEBOOK_EXECUTION_ROLE"
-] = "arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2"
-
 # SM client
 sm_client = boto3.client("sagemaker")
 JOB_LIMIT = 100
 ###################################################w############################
 #   Application object                                                        #
 ###############################################################################
-event = {
-    "body": {
-        "JOB_ID": "workflow-core-cluster-12093847190284",
-        "JOB_TYPE": "sagemaker_processing",
-        "WORKFLOW_NAME": "core-cluster",
-        "CONFIG": {
-            "authorizationToken": "3a4b969f4d5fae6f850e:NjJJRzEzNEI4VlFEeXpMVG42Z3Q6UldUeDYxUlJTVFdoNjRWaGVwM25Vdw:us-east-1:JBQRqahx3jgp7ZsIq6sp2jtUoZJ3",
-            "dataset_id": "basic_subclustering",
-        },
-    }
-}
+
+FILE_DIR = Path(__file__).parent
+EVENT_PATH = f'{FILE_DIR}/event.json'
 
 
 def handler(event, context={}):
+
+    # event = json.loads(open(EVENT_PATH).read())
     body = event["body"]
     config = body["CONFIG"]
 
@@ -136,4 +121,12 @@ def check_sm_job_status(job_id: str):
     return (None, None)
 
 
-handler(event)
+def main(args):
+    event['stage'] = args.stage
+    handler(event)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--stage", default='dev', type=str, choices={"dev", "stg", "prd"}, help="Run debug mode")
+    args = parser.parse_args()
+    main(args)
