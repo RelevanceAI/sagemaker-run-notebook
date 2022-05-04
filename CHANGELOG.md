@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.22.1 (2022-05-04)
+
+Fixing Makefile
 ## v0.22.0 (2022-05-04)
 
 This release supports - 
