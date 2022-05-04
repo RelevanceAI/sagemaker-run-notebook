@@ -64,7 +64,7 @@ elif [ "$1" == "--minor" ]
 then
   new_major=${old_major}
   new_minor=$((${old_minor} + 1))
-  new_patch==0
+  new_patch=0
 elif [ "$1" == "--major" ]
 then
   new_major=$((${old_major} + 1))
