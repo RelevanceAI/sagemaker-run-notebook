@@ -48,7 +48,7 @@ function usage {
     echo "Usage: $1 --patch"
     echo "       --patch: increase patch version"
     echo "       --minor: increase minor version"
-    echo "       --minor: increase major version"
+    echo "       --major: increase major version"
 }
 
 if [ "$1" == "" ]
