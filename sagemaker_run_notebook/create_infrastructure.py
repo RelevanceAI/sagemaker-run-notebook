@@ -49,7 +49,7 @@ def wait_for_infrastructure(stack_id, progress=True, sleep_time=10, session=None
     return status, desc.get("StackStatusReason")
 
 
-def create_infrastructure(session=None, update=False, wait=True, stage_name: Literal['dev', 'stg', 'prd']='dev'):
+def create_infrastructure(session=None, update=False, wait=True, stage: Literal['dev', 'stg', 'prd']='dev'):
     with open(cfn_template_file, mode="r") as f:
         cfn_template = f.read()
     session = ensure_session(session)
@@ -58,15 +58,31 @@ def create_infrastructure(session=None, update=False, wait=True, stage_name: Lit
     try:
         if not update:
             response = client.create_stack(
-                StackName=f"sagemaker-run-notebook-{stage_name}",
+                StackName=f"sagemaker-run-notebook-{stage}",
                 TemplateBody=cfn_template,
                 Capabilities=["CAPABILITY_NAMED_IAM"],
+                Parameters=[
+                    {
+                        'ParameterKey': 'Stage',
+                        'ParameterValue': stage,
+                        'UsePreviousValue': False,
+                        'ResolvedValue': stage
+                    }
+                ]
             )
         else:
             response = client.update_stack(
-                StackName=f"sagemaker-run-notebook-{stage_name}",
+                StackName=f"sagemaker-run-notebook-{stage}",
                 TemplateBody=cfn_template,
                 Capabilities=["CAPABILITY_NAMED_IAM"],
+                Parameters=[
+                    {
+                        'ParameterKey': 'Stage',
+                        'ParameterValue': stage,
+                        'UsePreviousValue': False,
+                        'ResolvedValue': stage
+                    }
+                ]
             )
     except botocore.exceptions.ClientError as ce:
         if ce.response["Error"]["Code"] == "AlreadyExistsException":

@@ -68,6 +68,9 @@ manual_dist/**
 sagemaker_run_notebook/cloudformation.yml
 docs/build/**
 
-
+## VScode
 .venv
 
+## Notebooks
+*.ipynb_checkpoints
+*.ipynb

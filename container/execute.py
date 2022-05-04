@@ -37,7 +37,7 @@ def run_notebook():
         notebook_path = os.environ[input_var]
         output_notebook = os.environ[output_var]
         params_path = os.environ[params_var]
-        # params = json.loads(os.environ[params_var])
+        params = json.loads(os.environ[params_var])
 
         notebook_dir = os.path.dirname(notebook_path)
         notebook_file = os.path.basename(notebook_path)

@@ -69,7 +69,7 @@
 
 
 Parameters:
-  StageName:
+  Stage:
     Type: String
     Default: dev
     AllowedValues:
@@ -82,7 +82,7 @@ Resources:
   ExecuteNotebookClientRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookClientRole", {"Ref": "AWS::Region"}, {"Ref": "StageName"}]]}
+      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookClientRole", {"Ref": "AWS::Region"}, {"Ref": "Stage"}]]}
       Description: A minimal role that lets the user run notebooks on demand or on a scheduler
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -96,7 +96,7 @@ Resources:
   ExecuteNotebookClientPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
-      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookClient", {"Ref": "AWS::Region"}, {"Ref": "StageName"}]]}
+      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookClient", {"Ref": "AWS::Region"}, {"Ref": "Stage"}]]}
       Roles: 
         - !Ref ExecuteNotebookClientRole
       PolicyDocument:
@@ -124,7 +124,7 @@ Resources:
               - events:PutRule
               - events:ListTargetsByRule
               - events:DisableRule
-            Resource: 'arn:aws:events:*:*:rule/RunNotebook*'
+            Resource: {"Fn::Join": ["", ['arn:aws:events:*:*:rule/RunNotebook-', {"Ref": "Stage"}]]}  
           - Sid: runnotebooklambda
             Effect: Allow
             Action:
@@ -132,7 +132,7 @@ Resources:
               - lambda:InvokeFunction
               - lambda:InvokeAsync
               - lambda:RemovePermission
-            Resource: 'arn:aws:lambda:*:*:function:RunNotebook'
+            Resource: {"Fn::Join": ["", ['arn:aws:lambda:*:*:function:RunNotebook-', {"Ref": "Stage"}]]} 
           - Sid: s3xfer
             Effect: Allow
             Action:
@@ -150,7 +150,7 @@ Resources:
   BasicExecuteNotebookRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["BasicExecuteNotebookRole", {"Ref": "AWS::Region"}, {"Ref": "StageName"}]]}
+      RoleName: {"Fn::Join": ["-", ["BasicExecuteNotebookRole", {"Ref": "AWS::Region"}, {"Ref": "Stage"}]]}
       Description: A minimal role used as the default for running the notebook container in SageMaker Processing
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -164,7 +164,7 @@ Resources:
   ExecuteNotebookContainerPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
-      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookContainerPolicy", {"Ref": "AWS::Region"}, {"Ref": "StageName"}]]}
+      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookContainerPolicy", {"Ref": "AWS::Region"}, {"Ref": "Stage"}]]}
       Roles: 
         - !Ref BasicExecuteNotebookRole
       PolicyDocument:
@@ -209,7 +209,7 @@ Resources:
   ContainerBuildRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookCodeBuildRole", {"Ref": "AWS::Region"}, {"Ref": "StageName"}]]}
+      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookCodeBuildRole", {"Ref": "AWS::Region"}, {"Ref": "Stage"}]]}
       Description: The role for building containers to be used with sagemaker_run_notebook
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -253,7 +253,7 @@ Resources:
   LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["RunNotebookLambdaExecutionRole", {"Ref": "AWS::Region"}, {"Ref": "StageName"}]]}
+      RoleName: {"Fn::Join": ["-", ["RunNotebookLambdaExecutionRole", {"Ref": "AWS::Region"}, {"Ref": "Stage"}]]}
       Description: The role for running the sagemaker_run_notebook lambda
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -279,13 +279,13 @@ Resources:
     DependsOn: InvokeNotebookLambda
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: {"Fn::Join": ["", ["RunNotebook", {"Ref": "StageName"}]]}
+      FunctionName: {"Fn::Join": ["-", ["RunNotebook", {"Ref": "Stage"}]]}
       Principal: events.amazonaws.com
-      SourceArn: {"Fn::Join": [":", ["arn:aws:events", {"Ref": "AWS::Region"}, {"Ref": "AWS::AccountId"}, "rule/RunNotebook-", {"Ref": "StageName"}, '*']]}
+      SourceArn: {"Fn::Join": [":", ["arn:aws:events", {"Ref": "AWS::Region"}, {"Ref": "AWS::AccountId"}, "rule/RunNotebook-", {"Ref": "Stage"}, '*']]}
   InvokeNotebookLambda:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName:  {"Fn::Join": ["", ["RunNotebook", {"Ref": "StageName"}]]}
+      FunctionName:  {"Fn::Join": ["-", ["RunNotebook", {"Ref": "Stage"}]]}
       Description: A function to run Jupyter notebooks using SageMaker processing jobs
       Handler: index.lambda_handler
       Runtime: python3.7

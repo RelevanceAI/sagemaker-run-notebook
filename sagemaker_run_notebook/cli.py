@@ -257,7 +257,7 @@ def list_rules(args):
 
 
 def create_infrastructure(args):
-    infra.create_infrastructure(update=args.update, stage_name=args.stage_name)
+    infra.create_infrastructure(update=args.update, stage=args.stage)
 
 
 def create_container(args):
@@ -483,7 +483,7 @@ def cli_argparser():
         action="store_true",
     )
     createinfra_parser.add_argument(
-        "--stage_name",
+        "--stage",
         help="Stage Name - [dev, stg, prd]",
         default="dev"
     )

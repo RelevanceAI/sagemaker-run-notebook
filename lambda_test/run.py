@@ -35,7 +35,7 @@ event = {
 
 NOTEBOOK_EXECUTION_ROLE = os.environ[
     "NOTEBOOK_EXECUTION_ROLE"
-] = "arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2"
+] = "arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-dev"
 WORKFLOW_S3_URIS = {}
 
 # logging = logging.getlogging()
