@@ -33,9 +33,11 @@ cfntemplate: sagemaker_run_notebook/cloudformation.yml
 create-infra:
 	run-notebook create-infrastructure --stage $(STAGE)
 
-update-infra: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
+sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
+	
+update_infra: sagemaker_run_notebook/cloudformation.yml
 	run-notebook create-infrastructure --update --stage $(STAGE)
 
 build-and-push:
@@ -48,7 +50,7 @@ test:
   # No python tests implemented yet
 	# pytest -v .
 	black --check .
-	python lambda_test.run.py
+	# python lambda_test.run.py
 
 docs:
 	(cd docs; make html)
