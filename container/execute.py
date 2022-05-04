@@ -78,9 +78,10 @@ def run_notebook():
         error_message = "Exception during processing: " + str(e) + "\n" + trc
         print(error_message, file=sys.stderr)
 
-        with open('/opt/ml/output/failure', 'w') as f:
+        with open('/opt/ml/output/message', 'w') as f:
             print(f'Writing failure message to file...')
             f.write(error_message)
+            
         # A non-zero exit code causes the training job to be marked as Failed.
         print(f'Exiting Sagemaker job ...')
         sys.exit(1)
