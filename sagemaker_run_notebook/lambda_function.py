@@ -23,7 +23,7 @@ def execute_notebook(
 
     account = session.client("sts").get_caller_identity()["Account"]
     if not image:
-        image = "notebook-runner"
+        image = "sagemaker-run-notebook"
     if "/" not in image:
         image = f"{account}.dkr.ecr.{region}.amazonaws.com/{image}"
     if ":" not in image:
@@ -66,7 +66,7 @@ def execute_notebook(
                     "S3InputMode": "File",
                     "S3DataDistributionType": "FullyReplicated",
                 },
-            },
+            }
         ],
         "ProcessingOutputConfig": {
             "Outputs": [
@@ -103,14 +103,16 @@ def execute_notebook(
         api_args = merge_extra(api_args, extra_args)
 
     parameters.pop("JOB_ID", None)
+
+
     api_args["Environment"]["PAPERMILL_INPUT"] = local_input
     api_args["Environment"]["PAPERMILL_OUTPUT"] = local_output + result
-    if os.environ.get("AWS_DEFAULT_REGION") != None:
-        api_args["Environment"]["AWS_DEFAULT_REGION"] = os.environ["AWS_DEFAULT_REGION"]
+    # if os.environ.get("AWS_DEFAULT_REGION") != None:
+    #     api_args["Environment"]["AWS_DEFAULT_REGION"] = os.environ["AWS_DEFAULT_REGION"]
     api_args["Environment"]["PAPERMILL_PARAMS"] = json.dumps(parameters)
-    api_args["Environment"]["PAPERMILL_NOTEBOOK_NAME"] = base
-    if rule_name is not None:
-        api_args["Environment"]["AWS_EVENTBRIDGE_RULE"] = rule_name
+    # api_args["Environment"]["PAPERMILL_NOTEBOOK_NAME"] = base
+    # if rule_name is not None:
+    #     api_args["Environment"]["AWS_EVENTBRIDGE_RULE"] = rule_name
 
     client = boto3.client("sagemaker")
     result = client.create_processing_job(**api_args)

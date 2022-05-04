@@ -52,7 +52,7 @@ cmdclass.pop("develop")
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-required_packages = ["boto3>=1.10.44"]
+required_packages = ["boto3>=1.10.44", "typing_extensions"]
 
 setuptools.setup(
     name=name,

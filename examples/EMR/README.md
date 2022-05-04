@@ -20,7 +20,7 @@ It is not yet possible to set up EMR connections from the JupyterLab GUI.
 
 As a convenience, we provide the shell script [`build-container.sh`](build-container.sh) here. This script takes three options: the target image name, the sparkmagic kernel to use, and the default EMR cluster to connect to.
 
-The __image name__, specified with the `-i` option, is the name of the ECR repository in your account in which to store the created image. If not specified, the name "emr-notebook-runner" is used.
+The __image name__, specified with the `-i` option, is the name of the ECR repository in your account in which to store the created image. If not specified, the name "emr-sagemaker-run-notebook" is used.
 
 The __sparkmagic kernel__, specified with the `-k` option, can be "pysparkkernel" for Python-based notebooks (the default), "sparkkernel" for Scala-based notebooks, or "sparkrkernel" for R-based notebooks. 
 
@@ -34,15 +34,15 @@ You can run the script with no arguments:
 $ ./build-container.sh
 ```
 
-which builds a container image called "emr-notebook-runner" that runs a pyspark notebook. The name of the EMR cluster must be specified when you call `run-notebook` (see below). Note that you must have specified AWS credentials in your configuration or in your environment.
+which builds a container image called "emr-sagemaker-run-notebook" that runs a pyspark notebook. The name of the EMR cluster must be specified when you call `run-notebook` (see below). Note that you must have specified AWS credentials in your configuration or in your environment.
 
 If you run the build like this:
 
 ```shell
-$ ./build-container.sh -c "Data Analysis Cluster" -i analysis-notebook-runner -k sparkkernel
+$ ./build-container.sh -c "Data Analysis Cluster" -i analysis-sagemaker-run-notebook -k sparkkernel
 ```
 
-you will build a container image called "analysis-notebook-runner" which runs a Spark Scala kernel connected to the cluster called "Data Analysis Cluster".
+you will build a container image called "analysis-sagemaker-run-notebook" which runs a Spark Scala kernel connected to the cluster called "Data Analysis Cluster".
 
 [1]: https://github.com/jupyter/docker-stacks/tree/master/r-notebook
 
@@ -53,7 +53,7 @@ As mentioned above, you currently need to use the `run-notebook` command to run 
 For example, to run the PySpark sample notebook included here using the cluster called "LivyTestCluster", you can simply run the following command:
 
 ```shell
-$ run-notebook run spark-test.ipynb -p input="s3://mybucket/myfile.txt" --image emr-notebook-runner --emr LivyTestCluster
+$ run-notebook run spark-test.ipynb -p input="s3://mybucket/myfile.txt" --image emr-sagemaker-run-notebook --emr LivyTestCluster
 ```
 
 Make sure to specify a real text file that you've put in S3.
@@ -62,7 +62,7 @@ The `--emr` argument will call EMR and get the information about the cluster to 
 
 ```shell
 $ run-notebook run spark-test.ipynb -p input="s3://mybucket/myfile.txt" \
-      --image emr-notebook-runner \
+      --image emr-sagemaker-run-notebook \
       --extra '{"Environment": {"EMR_ADDRESS": "ec2-54-195-170-239.us-west-2.compute.amazonaws.com"}, \
                 "NetworkConfig":{"VpcConfig":{"SecurityGroupIds":["sg-xxxxxxxx"],\
                                               "Subnets":["subnet-xxxxxxxx"]}}}'
@@ -73,5 +73,5 @@ substituting appropriate values for your cluster.
 The same idea works for scheduling notebook executions. To run the PySPark sample notebook every day at midnight UTC, use the following command:
 
 ```shell
-$ run-notebook schedule --at "cron(0 0 * * ? *)" --name "daily-spark-job" spark-test.ipynb -p input="s3://mybucket/myfile.txt" --image emr-notebook-runner --emr LivyTestCluster
+$ run-notebook schedule --at "cron(0 0 * * ? *)" --name "daily-spark-job" spark-test.ipynb -p input="s3://mybucket/myfile.txt" --image emr-sagemaker-run-notebook --emr LivyTestCluster
 ```

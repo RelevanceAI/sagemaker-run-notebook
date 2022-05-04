@@ -34,17 +34,21 @@ params_var = "PAPERMILL_PARAMS"
 
 def run_notebook():
     try:
-        notebook = os.environ[input_var]
+        notebook_path = os.environ[input_var]
         output_notebook = os.environ[output_var]
-        params = json.loads(os.environ[params_var])
+        params_path = os.environ[params_var]
+        # params = json.loads(os.environ[params_var])
 
-        notebook_dir = os.path.dirname(notebook)
-        notebook_file = os.path.basename(notebook)
+        notebook_dir = os.path.dirname(notebook_path)
+        notebook_file = os.path.basename(notebook_path)
+
+        params_dir = os.path.dirname(params_path)
+        params_file = os.path.basename(params_path)
 
         # If the user specified notebook path in S3, run with that path.
-        if notebook.startswith("s3://"):
-            print("Downloading notebook {}".format(notebook))
-            o = urlparse(notebook)
+        if notebook_path.startswith("s3://"):
+            print("Downloading notebook {}".format(notebook_path))
+            o = urlparse(notebook_path)
             bucket = o.netloc
             key = o.path[1:]
 
@@ -55,9 +59,30 @@ def run_notebook():
                 notebook_dir = "/tmp"
             except botocore.exceptions.ClientError as e:
                 if e.response["Error"]["Code"] == "404":
-                    print("The notebook {} does not exist.".format(notebook))
+                    print("The notebook {} does not exist.".format(notebook_path))
                 raise
             print("Download complete")
+        
+        if params_path.startswith("s3://"):
+            print("Downloading params file {}".format(params_path))
+            o = urlparse(params_path)
+            bucket = o.netloc
+            key = o.path[1:]
+
+            s3 = boto3.resource("s3")
+
+            try:
+                s3.Bucket(bucket).download_file(key, "/tmp/" + params_file)
+                params_dir = "/tmp"
+            except botocore.exceptions.ClientError as e:
+                if e.response["Error"]["Code"] == "404":
+                    print("The notebook {} does not exist.".format(params_path))
+                raise
+            print("Download complete")
+
+            os.chdir(params_dir)
+            params = json.loads(open(params_file).read())
+
 
         os.chdir(notebook_dir)
 

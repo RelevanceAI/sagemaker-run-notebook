@@ -8,7 +8,7 @@ Usage: $0 [options]
 
 Options:
     -c | --cluster <cluster>     The EMR cluster for this container to connect to by default. (default: NONE)
-    -i | --image <image-name>    The name of the ECR image to create. (default: emr-notebook-runner)
+    -i | --image <image-name>    The name of the ECR image to create. (default: emr-sagemaker-run-notebook)
     -k | --kernel <kernel-name>  The kernel to use to run the notebook. (default: pysparkkernel)
 
   The EMR cluster can be specified using the cluster ID, the cluster name, or the DNS address of the main node. This will be
@@ -46,7 +46,7 @@ function cluster_for(){
 }
 
 cluster=
-image=emr-notebook-runner
+image=emr-sagemaker-run-notebook
 kernel=pysparkkernel
 
 while [[ $# -gt 0 ]]

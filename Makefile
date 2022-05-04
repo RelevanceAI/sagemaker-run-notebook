@@ -13,6 +13,8 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
+STAGE_NAME ?= dev ## dev, stg, prd
+
 release: install test docs
 	make artifacts
 
@@ -28,9 +30,16 @@ clean:
 
 cfntemplate: sagemaker_run_notebook/cloudformation.yml
 
-sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
+create-infra:
+	run-notebook create-infrastructure --stage_name $(STAGE_NAME)
+
+update-infra: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
+	run-notebook create-infrastructure --update
+
+build-and-push:
+	cd container && ./build_and_push.sh sagemaker-run-notebook-$(STAGE_NAME)
 
 artifacts: clean cfntemplate
 	python setup.py sdist --dist-dir build/dist
@@ -39,6 +48,7 @@ test:
   # No python tests implemented yet
 	# pytest -v .
 	black --check .
+	python lambda_test.run.py
 
 docs:
 	(cd docs; make html)

@@ -23,6 +23,7 @@ import time
 from subprocess import Popen, PIPE, STDOUT, DEVNULL
 from shlex import split
 import zipfile as zip
+from urllib.parse import urlparse
 
 import botocore
 import boto3
@@ -309,6 +310,7 @@ def run_notebook(
     session = ensure_session(session)
     if output_prefix is None:
         output_prefix = get_output_prefix()
+    
     s3path = upload_notebook(notebook, session)
     job_name = execute_notebook(
         image=image,
@@ -395,7 +397,7 @@ def describe_run(job_name, session=None):
        'Elapsed': datetime.timedelta(seconds=54, microseconds=652000),
        'Result': 's3://sagemaker-us-west-2-1234567890/papermill_output/scala-spark-test-2020-10-21-20-00-11.ipynb',
        'Input': 's3://sagemaker-us-west-2-1234567890/papermill_input/notebook-2020-10-21-20-00-08.ipynb',
-       'Image': 'spark-scala-notebook-runner',
+       'Image': 'spark-scala-sagemaker-run-notebook-dev',
        'Instance': 'ml.m5.large',
        'Role': 'BasicExecuteNotebookRole-us-west-2'}
     """
@@ -735,7 +737,7 @@ class InvokeException(Exception):
 
 def invoke(
     notebook=None,
-    image="notebook-runner",
+    image="sagemaker-run-notebook-dev",
     input_path=None,
     output_prefix=None,
     parameters={},
@@ -766,7 +768,7 @@ def invoke(
         notebook (str): The notebook name. If `input_path` is None, this is a file to be uploaded before the Lambda is called.
                         all cases it is used as the name of the notebook when it's running and serves as the base of the
                         output file name (with a timestamp attached) (required).
-        image (str): The ECR image that defines the environment to run the job (Default: "notebook-runner").
+        image (str): The ECR image that defines the environment to run the job (Default: "sagemaker-run-notebook-dev").
         input_path (str): The S3 object containing the notebook. If this is None, the `notebook` argument is
                           taken as a local file to upload (default: None).
         output_prefix (str): The prefix path in S3 for where to store the output notebook
@@ -806,9 +808,31 @@ def invoke(
     extra_args = {}
     for f in extra_fns:
         extra_args = f(extra_args)
-
+    
+    
     if notebook:
-        notebook = os.path.basename(notebook)
+        notebook_dir = os.path.dirname(notebook)
+        notebook_file = os.path.basename(notebook)
+
+        if notebook.startswith("s3://"):
+                print("Downloading notebook {}".format(notebook))
+                o = urlparse(notebook)
+                bucket = o.netloc
+                key = o.path[1:]
+
+                s3 = boto3.resource("s3")
+
+                try:
+                    s3.Bucket(bucket).download_file(key, "/tmp/" + notebook_file)
+                    notebook_dir = "/tmp"
+                except botocore.exceptions.ClientError as e:
+                    if e.response["Error"]["Code"] == "404":
+                        print("The notebook {} does not exist.".format(notebook))
+                    raise
+                print("Download complete")
+
+        else:
+            notebook = os.path.basename(notebook)
 
     args = {
         "image": image,
@@ -845,7 +869,7 @@ def schedule(
     notebook=None,
     schedule=None,
     event_pattern=None,
-    image="notebook-runner",
+    image="sagemaker-run-notebook-dev",
     input_path=None,
     output_prefix=None,
     parameters={},
@@ -886,7 +910,7 @@ def schedule(
         event_pattern (str): A pattern for events that will trigger notebook execution. For details, 
                              see https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html. 
                              (default: None. Note: one of `schedule` or `event_pattern` must be specified).
-        image (str): The ECR image that defines the environment to run the job (Default: "notebook-runner").
+        image (str): The ECR image that defines the environment to run the job (Default: "sagemaker-run-notebook-dev").
         input_path (str): The S3 object containing the notebook. If this is None, the `notebook` argument is
                           taken as a local file to upload (default: None).
         output_prefix (str): The prefix path in S3 for where to store the output notebook 
@@ -1043,7 +1067,7 @@ def describe_schedule(rule_name, rule_item=None, session=None):
         'parameters': {},
         'schedule': 'rate(1 hour)',
         'event_pattern': None,
-        'image': 'notebook-runner',
+        'image': 'sagemaker-run-notebook-dev',
         'instance': 'ml.m5.large',
         'role': 'BasicExecuteNotebookRole-us-west-2',
         'state': 'ENABLED',

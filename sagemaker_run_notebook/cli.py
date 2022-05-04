@@ -120,7 +120,7 @@ def local_notebook(args):
     account = session.client("sts").get_caller_identity()["Account"]
     image = args.image
     if not image:
-        image = "notebook-runner"
+        image = "sagemaker-run-notebook"
     if "/" not in image:
         image = f"{account}.dkr.ecr.{region}.amazonaws.com/{image}"
     if ":" not in image:
@@ -257,7 +257,7 @@ def list_rules(args):
 
 
 def create_infrastructure(args):
-    infra.create_infrastructure(update=args.update)
+    infra.create_infrastructure(update=args.update, stage_name=args.stage_name)
 
 
 def create_container(args):
@@ -312,8 +312,8 @@ def cli_argparser():
     )
     run_parser.add_argument(
         "--image",
-        help="The Docker image in ECR to use to run the notebook (default: notebook-runner)",
-        default="notebook-runner",
+        help="The Docker image in ECR to use to run the notebook (default: sagemaker-run-notebook)",
+        default="sagemaker-run-notebook",
     )
     run_parser.add_argument(
         "--extra",
@@ -406,8 +406,8 @@ def cli_argparser():
     )
     schedule_parser.add_argument(
         "--image",
-        help="The Docker image in ECR to use to run the notebook (default: notebook-runner)",
-        default="notebook-runner",
+        help="The Docker image in ECR to use to run the notebook (default: sagemaker-run-notebook)",
+        default="sagemaker-run-notebook",
     )
     schedule_parser.add_argument(
         "--emr",
@@ -458,8 +458,8 @@ def cli_argparser():
     )
     local_parser.add_argument(
         "--image",
-        help="The Docker image in ECR to use to run the notebook (default: notebook-runner)",
-        default="notebook-runner",
+        help="The Docker image in ECR to use to run the notebook (default: sagemaker-run-notebook)",
+        default="sagemaker-run-notebook",
     )
     local_parser.add_argument(
         "--output-dir",
@@ -482,6 +482,11 @@ def cli_argparser():
         help="Add this flag to update an existing stack",
         action="store_true",
     )
+    createinfra_parser.add_argument(
+        "--stage_name",
+        help="Stage Name - [dev, stg, prd]",
+        default="dev"
+    )
     createinfra_parser.set_defaults(func=create_infrastructure)
 
     container_parser = subparsers.add_parser(
@@ -490,9 +495,9 @@ def cli_argparser():
     )
     container_parser.add_argument(
         "repository",
-        help="The ECR repository for the image (default: notebook-runner)",
+        help="The ECR repository for the image (default: sagemaker-run-notebook)",
         nargs="?",
-        default="notebook-runner",
+        default="sagemaker-run-notebook",
     )
     container_parser.add_argument(
         "--base",

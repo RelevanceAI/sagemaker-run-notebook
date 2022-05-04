@@ -14,7 +14,7 @@
 import os
 import sys
 import time
-
+from typing_extensions import Literal
 import botocore.exceptions
 import boto3
 
@@ -49,7 +49,7 @@ def wait_for_infrastructure(stack_id, progress=True, sleep_time=10, session=None
     return status, desc.get("StackStatusReason")
 
 
-def create_infrastructure(session=None, update=False, wait=True):
+def create_infrastructure(session=None, update=False, wait=True, stage_name: Literal['dev', 'stg', 'prd']='dev'):
     with open(cfn_template_file, mode="r") as f:
         cfn_template = f.read()
     session = ensure_session(session)
@@ -58,13 +58,13 @@ def create_infrastructure(session=None, update=False, wait=True):
     try:
         if not update:
             response = client.create_stack(
-                StackName="sagemaker-run-notebook",
+                StackName=f"sagemaker-run-notebook-{stage_name}",
                 TemplateBody=cfn_template,
                 Capabilities=["CAPABILITY_NAMED_IAM"],
             )
         else:
             response = client.update_stack(
-                StackName="sagemaker-run-notebook",
+                StackName=f"sagemaker-run-notebook-{stage_name}",
                 TemplateBody=cfn_template,
                 Capabilities=["CAPABILITY_NAMED_IAM"],
             )

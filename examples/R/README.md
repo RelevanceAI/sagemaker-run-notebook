@@ -7,7 +7,7 @@ This example shows how to run a notebook written in R using the notebook schedul
 To run in R, you need to build a container using the standard [R notebook container][1] published by Project Jupyter. One wrinkle here is that because Papermill defaults to using a Python kernel, you need to specify the kernel to use. The default R notebook uses the kernel `ir`. Putting these together, we can build the container using the CLI like this:
 
 ```shell
-$ run-notebook create-container --base jupyter/r-notebook -k ir r-notebook-runner
+$ run-notebook create-container --base jupyter/r-notebook -k ir r-sagemaker-run-notebook
 ```
 
 [1]: https://github.com/jupyter/docker-stacks/tree/master/r-notebook
@@ -23,17 +23,17 @@ Rscript -e 'install.packages(c("ggplot2", "dplyr"), repos="https://cloud.r-proje
 If you save this script as `install.sh`, create the container like this:
 
 ```shell
-$ run-notebook create-container --base jupyter/r-notebook -k ir --script install.sh r-notebook-runner
+$ run-notebook create-container --base jupyter/r-notebook -k ir --script install.sh r-sagemaker-run-notebook
 ```
 
 You can just use the [build-container.sh](build-container.sh) script which has the above command in it.
 
 ### Run the notebook
 
-Now you can run the notebook in the normal way by asking for the r-notebook-runner image. From the CLI, it looks like this:
+Now you can run the notebook in the normal way by asking for the r-sagemaker-run-notebook image. From the CLI, it looks like this:
 
 ```shell
-$ run-notebook run --image r-notebook-runner ggplot-sample.ipynb
+$ run-notebook run --image r-sagemaker-run-notebook ggplot-sample.ipynb
 ```
 
-From the JupyterLab extension, you can just open your R notebook and use `r-notebook-runner` as the image.
+From the JupyterLab extension, you can just open your R notebook and use `r-sagemaker-run-notebook` as the image.

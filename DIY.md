@@ -61,7 +61,7 @@ The `container.tar.gz` file in the [latest release][release] contains everything
 $ tar xvf container.tar.gz
 $ cd container
 <edit requirements.txt to add any dependencies you need>
-$ ./build-and-push.sh notebook-runner
+$ ./build-and-push.sh sagemaker-run-notebook
 ```
 
 > _Note:_ You must have Docker installed for `build-and-push.sh` to work. If you prefer not to install and run Docker, use the convenience package as described in [Create a Docker container to run the notebook](#3-create-a-docker-container-to-run-the-notebook). That technique uses CodeBuild to build the container image to use.

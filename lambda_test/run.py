@@ -45,60 +45,102 @@ WORKFLOW_S3_URIS = {}
 ###############################################################################
 
 
-def handler(event, context: dict = {}):
+def handler(event, context={}):
+    # stage = event["requestContext"]["stage"]
     # body = json.loads(event["body"])
-    body = event["body"]
+    body = event['body']
+    stage = 'dev'
     config = body["CONFIG"]
-    json.dumps(body, indent=2)
-    logging_level = logging.DEBUG if config.get("DEBUG") else logging.INFO
-    # logging.setLevel(level=logging_level)
-    logging.basicConfig(level=logging_level)
 
-    if os.getenv("SUPPORT_ACTIVATION_TOKEN"):
-        client = Client(os.getenv("SUPPORT_ACTIVATION_TOKEN"))
+    print(json.dumps(body, indent=2))
+
+    # global SUPPORT_ACTIVATION_TOKEN
+    # if not SUPPORT_ACTIVATION_TOKEN:
+    #     SUPPORT_ACTIVATION_TOKEN = get_secret_value(
+    #         secret_id=os.environ["SUPPORT_TOKEN_SECRET_ID"]
+    #     )
+    #     if "ERROR" in SUPPORT_ACTIVATION_TOKEN:
+    #         body = {
+    #             **{"message": SUPPORT_ACTIVATION_TOKEN},
+    #             **body,
+    #         }
+    #         return return_response(response_code=500, body=body)
+    SUPPORT_ACTIVATION_TOKEN = os.environ['SUPPORT_ACTIVATION_TOKEN']
+
+    ## If not authToken in payload, load support
+    if not config.get("authorizationToken"):
+        config["authorizationToken"] = SUPPORT_ACTIVATION_TOKEN
+
+    global WORKFLOW_S3_URIS
+    if not WORKFLOW_S3_URIS:
+        client = Client(SUPPORT_ACTIVATION_TOKEN)
         ds = client.Dataset("workflows-recipes")
-        WORKFLOWS = ds.get_all_documents()
-        WORKFLOW_S3_URIS = {w["_id"]: w["s3_url"] for w in WORKFLOWS if w.get("s3_url")}
+        WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url.{stage}"].exists())
+        WORKFLOW_S3_URIS = {w["_id"]: w["s3_url"][stage] for w in WORKFLOWS}
 
-    WORKFLOW_NAME = body["WORKFLOW_NAME"]
-    EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"]
+    WORKFLOW_NAME = body.get("WORKFLOW_NAME")
     NOTEBOOK_PATH = WORKFLOW_S3_URIS.get(WORKFLOW_NAME)
+    if not WORKFLOW_NAME or not NOTEBOOK_PATH:
+        body = {
+            **{"message": f"Workflow {WORKFLOW_NAME} not found or is not valid."},
+            **body,
+        }
+        return return_response(response_code=500, body=body)
 
-    logging.info(f"WORKFLOW_NAME: {WORKFLOW_NAME}")
-    logging.info(f"EXECUTION_ROLE: {EXECUTION_ROLE}")
+    print(f"WORKFLOW_NAME: {WORKFLOW_NAME}")
+    # print(f"EXECUTION_ROLE: {EXECUTION_ROLE}")
 
     try:
         if body["JOB_TYPE"] == "sagemaker_processing":
-            print()
-            logging.info(f'Invoking Sagemaker processing job {body["JOB_ID"]}')
-            print({**{"JOB_ID": body["JOB_ID"]}, **config})
+            EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"]
+            print(
+                f'Invoking Sagemaker processing job {body["JOB_ID"]} with {EXECUTION_ROLE}'
+            )
+            # print(NOTEBOOK_PATH)
             sm_job = run.invoke(
-                # notebook="",
                 input_path=NOTEBOOK_PATH,
+                image=f'sagemaker-run-notebook-{stage}',
                 role=EXECUTION_ROLE,
                 parameters={**{"JOB_ID": body["JOB_ID"]}, **config},
             )
-            print(f"Invoked")
             if sm_job:
                 response_code = 200
+                body = {
+                    **{
+                        "message": f'Sagemaker Processing job created for {body["JOB_ID"]}.'
+                    },
+                    **body,
+                }
 
-            logging.info("Wait for job to complete ...")
-            start = time.time()
-            run.wait_for_complete(sm_job)
-            end = time.time()
+        # print("Wait for job to complete ...")
+        # start = time.time()
+        # run.wait_for_complete(sm_job)
+        # end = time.time()
+        # print(f"{WORKFLOW_NAME} workflow took {end-start:.4}s ... ")
 
-            logging.info(f"{WORKFLOW_NAME} workflow took {end-start:.4}s ... ")
     except Exception as e:
+        print(f"Error invoking job. {e}")
         response_code = 500
-        raise ValueError(f"{e}")
+        body = {**{"message": str(e)}, **body}
+
+    ## Masking creds
+    if body["CONFIG"].get("authorizationToken"):
+        body["CONFIG"]["authorizationToken"] = "*" * len(
+            body["CONFIG"]["authorizationToken"]
+        )
+
+def return_response(response_code: int, body: dict) -> dict:
     response = {
         "statusCode": response_code,
-        # "headers": {
-        #     "x-custom-header" : "my custom header value"
-        # },
+        "headers": {
+            "Access-Control-Allow-Headers": "Content-Type",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+        },
         "body": body,
     }
-    json.dumps(response, indent=2)
+    print(json.dumps(response, indent=2))
+    response["body"] = json.dumps(body)
     return response
 
 
