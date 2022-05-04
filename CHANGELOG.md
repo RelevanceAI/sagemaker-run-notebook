@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.22.0 (2022-05-04)
+
+This release supports - 
+
+- Ability to deploy in stages (dev, stg, prd). All resources are appended with stage name. Default is dev.
+    ```zsh
+    make create-infra --stage stg       ## Deploying new sagemaker-run-notebook stack
+    make create-infra --stage stg --update   ## Updating the stack
+    make build-and-push --stage stg     ## Updating the Sagemaker container execution image
+    ```
+
+
 ## v0.21.4 (2022-05-03)
 
 This release supports - 
