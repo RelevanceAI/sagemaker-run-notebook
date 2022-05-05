@@ -165,11 +165,6 @@ def execute_notebook(
     nb_name, nb_ext = os.path.splitext(base)
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 
-    # job_name = (
-    #     ("papermill-" + re.sub(r"[^-a-zA-Z0-9]", "-", nb_name))[: 62 - len(timestamp)]
-    #     + "-"
-    #     + timestamp
-    # )
     job_name = parameters["JOB_ID"]
 
     input_directory = "/opt/ml/processing/input/"

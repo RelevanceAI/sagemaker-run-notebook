@@ -52,7 +52,7 @@ def handler(event, context={}):
 
     if body["JOB_TYPE"] == "sagemaker_processing":
         job_status, job_message = check_sm_job_status(job_id=body["JOB_ID"], timestamp=body["TIMESTAMP"])
-        if not job_message:
+        if not job_status:
             response_code = 500
             job_message = {
                 "message": f"Job Id {body['JOB_ID']} does not exist in Sagemaker Processing jobs."
@@ -116,17 +116,20 @@ def check_sm_job_status(job_id: str, timestamp:str):
             job_message["JOB_MESSAGE"] += f'\n{job["FailureReason"]}'
         return job["ProcessingJobStatus"], job_message
     else:
+        
+        job_messages = []
         for job in response:
-            job_message = {
+            job_messages.append( {
                 "JOB_STATUS": job["ProcessingJobStatus"],
                 "JOB_MESSAGE": f'Job {job["ProcessingJobStatus"]} {d} days, {h} hours, {m} min, {s} secs ago.',
-            }
+            })
+        
         job_message = {
             "JOB_STATUS": f"{len(response)} jobs found",
-            "JOB_MESSAGE": {**job_message}
+            "JOB_MESSAGE": job_messages,
         }
         return (None, job_message)
-        
+
 
 def main(args):
     event = json.loads(open(EVENT_PATH).read())

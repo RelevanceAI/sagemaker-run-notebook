@@ -34,13 +34,13 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 
 event = {
     "body" :{
-            "JOB_ID": f"workflow-core-cluster-eldern-ring-steam-reviews-asadfasdlfkjasdlfkjaslfk-{TIMESTAMP}",
+            "JOB_ID": f"workflow-dev-core-cluster-fail-pls-{TIMESTAMP}",
             "JOB_TYPE": "sagemaker_processing",
             "TIMESTAMP": TIMESTAMP,
             "WORKFLOW_NAME": "core-cluster",
             "DEBUG": True,
             "CONFIG": {
-                "dataset_id": "eldern_ring_steam_reviews",
+                "dataset_id": "1341241234",
                 "n_clusters": 10,
                 "vector_fields": [
                     "review_a_vector_"

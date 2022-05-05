@@ -95,14 +95,16 @@ def run_notebook():
         # Write out an error file. This will be returned as the failureReason in the
         # DescribeProcessingJob result.
         trc = traceback.format_exc()
-        # with open(os.path.join(output_path, 'failure'), 'w') as s:
-        #    s.write('Exception during processing: ' + str(e) + '\n' + trc)
-        # Printing this causes the exception to be in the training job logs, as well.
+
         error_message = "Exception during processing: " + str(e) + "\n" + trc
         print(error_message, file=sys.stderr)
 
         with open("/opt/ml/output/message", "w") as f:
             print(f"Writing failure message to file...")
+            f.write(error_message)
+
+        # with open("error", "w") as f:
+        with open("/opt/ml/output/failure", "w") as f:
             f.write(error_message)
 
         # A non-zero exit code causes the training job to be marked as Failed.

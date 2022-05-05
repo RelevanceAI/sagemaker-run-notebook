@@ -13,7 +13,7 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-STAGE ?= stg ## dev, stg, prd
+STAGE ?= dev ## dev, stg, prd
 
 release: install test docs
 	make artifacts
@@ -37,7 +37,7 @@ sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
 	
-update_infra: sagemaker_run_notebook/cloudformation.yml
+update-infra: sagemaker_run_notebook/cloudformation.yml
 	run-notebook create-infrastructure --update --stage $(STAGE)
 
 build-and-push:
