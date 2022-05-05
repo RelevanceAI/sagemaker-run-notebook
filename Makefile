@@ -13,7 +13,7 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-STAGE ?= dev ## dev, stg, prd
+STAGE ?= stg ## dev, stg, prd
 
 release: install test docs
 	make artifacts
@@ -51,6 +51,9 @@ test:
 	# pytest -v .
 	black --check .
 	# python lambda_test.run.py
+
+test-lambda:
+	python lambda_test/run.py --stage $(STAGE)
 
 docs:
 	(cd docs; make html)

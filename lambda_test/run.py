@@ -26,7 +26,7 @@ tags_metadata = []
 
 
 FILE_DIR = Path(__file__).parent
-EVENT_PATH = f"{FILE_DIR}/event.json"
+EVENT_PATH = f'{FILE_DIR}/event.json'
 JOB_ID = f"workflow-cluster-{int(datetime.now().timestamp())}"
 
 event = {
@@ -37,6 +37,9 @@ event = {
         "CONFIG": {
             "authorizationToken": "3a4b969f4d5fae6f850e:NjJJRzEzNEI4VlFEeXpMVG42Z3Q6UldUeDYxUlJTVFdoNjRWaGVwM25Vdw:us-east-1:JBQRqahx3jgp7ZsIq6sp2jtUoZJ3",
             "dataset_id": "basic_subclustering",
+            "vector_fields": ["product_title_clip_vector_"],
+            "n_clusters": 20,
+            "clusteringType": "kmeans"
         },
     }
 }
@@ -54,15 +57,13 @@ WORKFLOW_S3_URIS = {}
 
 
 def handler(event, context={}):
-
+    
     # body = json.loads(event["body"])
-    body = event["body"]
-    stage = event["stage"]
+    body = event['body']
+    stage = event['stage']
     config = body["CONFIG"]
 
-    NOTEBOOK_EXECUTION_ROLE = os.environ[
-        "NOTEBOOK_EXECUTION_ROLE"
-    ] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{stage}"
+    NOTEBOOK_EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{stage}"
 
     print(json.dumps(body, indent=2))
 
@@ -77,7 +78,7 @@ def handler(event, context={}):
     #             **body,
     #         }
     #         return return_response(response_code=500, body=body)
-    SUPPORT_ACTIVATION_TOKEN = os.environ["SUPPORT_ACTIVATION_TOKEN"]
+    SUPPORT_ACTIVATION_TOKEN = os.environ['SUPPORT_ACTIVATION_TOKEN']
 
     ## If not authToken in payload, load support
     if not config.get("authorizationToken"):
@@ -90,9 +91,10 @@ def handler(event, context={}):
         WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url"].exists())
         for w in WORKFLOWS:
             if w["s3_url"].get(stage):
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][stage]
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][stage] 
             else:
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]["dev"]
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]['dev'] 
+
 
     WORKFLOW_NAME = body.get("WORKFLOW_NAME")
     NOTEBOOK_PATH = WORKFLOW_S3_URIS.get(WORKFLOW_NAME)
@@ -116,9 +118,10 @@ def handler(event, context={}):
             sm_job = run.invoke(
                 input_path=NOTEBOOK_PATH,
                 stage=stage,
-                image=f"sagemaker-run-notebook-{stage}",
+                image=f'sagemaker-run-notebook-{stage}',
                 role=EXECUTION_ROLE,
                 parameters={**{"JOB_ID": body["JOB_ID"]}, **config},
+                upload_parameters=True
             )
             if sm_job:
                 response_code = 200
@@ -146,7 +149,6 @@ def handler(event, context={}):
             body["CONFIG"]["authorizationToken"]
         )
 
-
 def return_response(response_code: int, body: dict) -> dict:
     response = {
         "statusCode": response_code,
@@ -161,22 +163,13 @@ def return_response(response_code: int, body: dict) -> dict:
     response["body"] = json.dumps(body)
     return response
 
-
 def main(args):
-    event["stage"] = args.stage
+    event['stage'] = args.stage
     handler(event)
     poll_handler(event)
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-s",
-        "--stage",
-        default="dev",
-        type=str,
-        choices={"dev", "stg", "prd"},
-        help="Run debug mode",
-    )
+    parser.add_argument("-s", "--stage", default='dev', type=str, choices={"dev", "stg", "prd"}, help="Run debug mode")
     args = parser.parse_args()
     main(args)

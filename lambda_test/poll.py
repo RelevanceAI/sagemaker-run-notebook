@@ -40,7 +40,7 @@ EVENT_PATH = f"{FILE_DIR}/event.json"
 
 def handler(event, context={}):
 
-    # event = json.loads(open(EVENT_PATH).read())
+    # 
     body = event["body"]
     config = body["CONFIG"]
 
@@ -122,6 +122,7 @@ def check_sm_job_status(job_id: str):
 
 
 def main(args):
+    event = json.loads(open(EVENT_PATH).read())
     event["stage"] = args.stage
     handler(event)
 

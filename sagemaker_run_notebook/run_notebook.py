@@ -59,13 +59,14 @@ def abbreviate_role(role):
     else:
         return role
 
-
-def upload_notebook(notebook, session=None):
-    """Uploads a notebook to S3 in the default SageMaker Python SDK bucket for
-    this user. The resulting S3 object will be named "s3://<bucket>/papermill-input/notebook-YYYY-MM-DD-hh-mm-ss.ipynb".
+def upload_notebook(notebook, fname=None, session=None):
+    """Uploads a file obj to S3 in the default SageMaker Python SDK bucket for
+    this user. The resulting S3 object will be named "s3://<bucket>/papermill-input/notebook-<%Y-%m-%d-%H-%M-%S>.ipynb".
 
     Args:
-      notebook (str):
+      fpath (str):
+        The filepath of the notebook you want to upload. (Required)
+      fname (str):
         The filename of the notebook you want to upload. (Required)
       session (boto3.Session):
         A boto3 session to use. Will create a default session if not supplied. (Default: None)
@@ -73,17 +74,41 @@ def upload_notebook(notebook, session=None):
     Returns:
       The resulting object name in S3 in URI format.
     """
+    if not fname:
+        fname = "notebook-{}.ipynb".format(
+            time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+        )
+
+    ## Uploading notebook
     with open(notebook, "rb") as f:
-        return upload_fileobj(f, session)
+        print(type(f))
+        return upload_fileobj(f, fname,  session)
+    
+def upload_json(json_data, fname, session=None):
+    session = ensure_session(session)
+    s3 = session.client("s3")
+    key = "papermill_input/" + fname
+    bucket = default_bucket(session)
+    s3path = "s3://{}/{}".format(bucket, key)
+    print(f'Uploading {fname} to {s3path}')
+    s3.put_object(
+        Body=json.dumps(json_data),
+        Bucket=bucket,
+        Key=key
+    )
+    return s3path
 
 
-def upload_fileobj(notebook_fileobj, session=None):
+
+def upload_fileobj(fobj, fname, session=None):
     """Uploads a file object to S3 in the default SageMaker Python SDK bucket for
-    this user. The resulting S3 object will be named "s3://<bucket>/papermill-input/notebook-YYYY-MM-DD-hh-mm-ss.ipynb".
+    this user. The resulting S3 object will be named "s3://<bucket>/papermill-input/<fname>".
 
     Args:
-      notebook_fileobj (fileobj):
+      fobj (fileobj):
         A file object (as returned from open) that is reading from the notebook you want to upload. (Required)
+      fobj (str):
+        The filename of the notebook you want to upload. (Required)
       session (boto3.Session):
         A boto3 session to use. Will create a default session if not supplied. (Default: None)
 
@@ -92,16 +117,12 @@ def upload_fileobj(notebook_fileobj, session=None):
     """
 
     session = ensure_session(session)
-    snotebook = "notebook-{}.ipynb".format(
-        time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-    )
-
     s3 = session.client("s3")
-    key = "papermill_input/" + snotebook
+    key = "papermill_input/" + fname
     bucket = default_bucket(session)
     s3path = "s3://{}/{}".format(bucket, key)
-    s3.upload_fileobj(notebook_fileobj, bucket, key)
-
+    print(f'Uploading {fname} to {s3path}')
+    s3.upload_fileobj(fobj, bucket, key)
     return s3path
 
 
@@ -316,7 +337,7 @@ def run_notebook(
     if output_prefix is None:
         output_prefix = get_output_prefix()
 
-    s3path = upload_notebook(notebook, session)
+    s3path = upload_notebook(notebook, parameters, session)
 
     if stage not in image:
         image = f"{image}-{stage}"
@@ -750,6 +771,7 @@ def invoke(
     stage: Literal["dev", "stg", "prd"] = "dev",
     input_path=None,
     output_prefix=None,
+    upload_parameters=False,
     parameters={},
     role=None,
     instance_type="ml.m5.large",
@@ -834,11 +856,22 @@ def invoke(
             notebook = os.path.basename(notebook_file)
         else:
             notebook = os.path.basename(notebook)
+    # else:
+    #     notebook = input_path
+    
+    notebook_name = f"{parameters['JOB_ID']}.ipynb"
+    params_name = f"{parameters['JOB_ID']}.json"
+
+    if upload_parameters:
+        parameters = {'S3_PATH': upload_json(parameters, params_name, session), 'JOB_ID': parameters['JOB_ID']}
 
     if input_path is None:
-        input_path = upload_notebook(notebook)
+        input_path = upload_notebook(notebook, notebook_name, session)
     if output_prefix is None:
         output_prefix = get_output_prefix()
+    
+    if not notebook:
+        notebook = input_path
 
     extra_args = {}
     for f in extra_fns:
@@ -846,6 +879,8 @@ def invoke(
 
     if stage not in image:
         image = f"{image}-{stage}"
+
+    
     args = {
         "image": image,
         "input_path": input_path,
