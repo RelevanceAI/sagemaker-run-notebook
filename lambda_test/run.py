@@ -27,22 +27,34 @@ tags_metadata = []
 
 FILE_DIR = Path(__file__).parent
 EVENT_PATH = f'{FILE_DIR}/event.json'
-JOB_ID = f"workflow-cluster-{int(datetime.now().timestamp())}"
+TIMESTAMP = int(datetime.now().timestamp())
+JOB_ID = f"workflow-cluster-{TIMESTAMP}"
+
+
 
 event = {
-    "body": {
-        "JOB_ID": JOB_ID,
-        "JOB_TYPE": "sagemaker_processing",
-        "WORKFLOW_NAME": "core-cluster",
-        "CONFIG": {
-            "authorizationToken": "3a4b969f4d5fae6f850e:NjJJRzEzNEI4VlFEeXpMVG42Z3Q6UldUeDYxUlJTVFdoNjRWaGVwM25Vdw:us-east-1:JBQRqahx3jgp7ZsIq6sp2jtUoZJ3",
-            "dataset_id": "basic_subclustering",
-            "vector_fields": ["product_title_clip_vector_"],
-            "n_clusters": 20,
-            "clusteringType": "kmeans"
-        },
+    "body" :{
+            "JOB_ID": f"workflow-core-cluster-eldern-ring-steam-reviews-asadfasdlfkjasdlfkjaslfk-{TIMESTAMP}",
+            "JOB_TYPE": "sagemaker_processing",
+            "TIMESTAMP": TIMESTAMP,
+            "WORKFLOW_NAME": "core-cluster",
+            "DEBUG": True,
+            "CONFIG": {
+                "dataset_id": "eldern_ring_steam_reviews",
+                "n_clusters": 10,
+                "vector_fields": [
+                    "review_a_vector_"
+                ],
+                "cutoff": 0.75,
+                "clusteringType": "community-detection",
+                "region": "us-east-1",
+                "project": "452d7499c071ab48e4e5",
+                "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
+                "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
+            }
+        }
     }
-}
+
 
 json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
 
@@ -111,26 +123,35 @@ def handler(event, context={}):
     try:
         if body["JOB_TYPE"] == "sagemaker_processing":
             EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"]
+
+            ## ProcessingName Cleaning
+            JOB_ID_L = body['JOB_ID'].replace('_', '-').split('-')
+            WORKFLOW_DATASET_ID='-'.join(JOB_ID_L[1:-2])[:50]
+            JOB_ID = '-'.join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
+
             print(
-                f'Invoking Sagemaker processing job {body["JOB_ID"]} with {EXECUTION_ROLE}'
+                f'Invoking Sagemaker processing job {JOB_ID} with {EXECUTION_ROLE}'
             )
             # print(NOTEBOOK_PATH)
+
+            ## To overcome 
             sm_job = run.invoke(
                 input_path=NOTEBOOK_PATH,
                 stage=stage,
                 image=f'sagemaker-run-notebook-{stage}',
                 role=EXECUTION_ROLE,
-                parameters={**{"JOB_ID": body["JOB_ID"]}, **config},
+                parameters={**{"JOB_ID": JOB_ID}, **config},
                 upload_parameters=True
             )
             if sm_job:
                 response_code = 200
                 body = {
                     **{
-                        "message": f'Sagemaker Processing job created for {body["JOB_ID"]}.'
+                        "message": f'Sagemaker Processing job created for {JOB_ID}.'
                     },
                     **body,
                 }
+                
 
         # print("Wait for job to complete ...")
         # start = time.time()
@@ -148,6 +169,7 @@ def handler(event, context={}):
         body["CONFIG"]["authorizationToken"] = "*" * len(
             body["CONFIG"]["authorizationToken"]
         )
+    
 
 def return_response(response_code: int, body: dict) -> dict:
     response = {

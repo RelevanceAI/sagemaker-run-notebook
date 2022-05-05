@@ -51,8 +51,8 @@ def handler(event, context={}):
     logging.info(json.dumps(body, indent=2))
 
     if body["JOB_TYPE"] == "sagemaker_processing":
-        job_status, job_message = check_sm_job_status(job_id=body["JOB_ID"])
-        if not job_status:
+        job_status, job_message = check_sm_job_status(job_id=body["JOB_ID"], timestamp=body["TIMESTAMP"])
+        if not job_message:
             response_code = 500
             job_message = {
                 "message": f"Job Id {body['JOB_ID']} does not exist in Sagemaker Processing jobs."
@@ -91,35 +91,42 @@ def days_hours_minutes_seconds(td):
     return td.days, hours, minutes, round(seconds, 2)
 
 
-def check_sm_job_status(job_id: str):
+def check_sm_job_status(job_id: str, timestamp:str):
     aest = dateutil.tz.gettz("Australia/Sydney")
     dt_last_half_hour = datetime.now(timezone.utc) - timedelta(minutes=30)
 
     response = sm_client.list_processing_jobs(
-        NameContains="workflow",
-        CreationTimeAfter=dt_last_half_hour,
+        NameContains=str(timestamp),
+        # CreationTimeAfter=dt_last_half_hour,
         MaxResults=JOB_LIMIT,
         # StatusEquals='InProgress'
-    )
-    logging.info(
-        f'{len(response["ProcessingJobSummaries"])} executed in last half hour at {dt_last_half_hour.time()}.'
-    )
-    for job in response["ProcessingJobSummaries"]:
-        if job["ProcessingJobName"] == job_id:
-            created_time = job["CreationTime"].replace(tzinfo=utc)
-            td = datetime.now(timezone.utc) - created_time
-            d, h, m, s = days_hours_minutes_seconds(td)
+    )["ProcessingJobSummaries"]
 
+    if len(response) == 1:
+        job = response[0]
+        created_time = job["CreationTime"].replace(tzinfo=utc)
+        td = datetime.now(timezone.utc) - created_time
+        d, h, m, s = days_hours_minutes_seconds(td)
+
+        job_message = {
+            "JOB_STATUS": job["ProcessingJobStatus"],
+            "JOB_MESSAGE": f'Job {job["ProcessingJobStatus"]} {d} days, {h} hours, {m} min, {s} secs ago.',
+        }
+        if job["ProcessingJobStatus"] == "Failed":
+            job_message["JOB_MESSAGE"] += f'\n{job["FailureReason"]}'
+        return job["ProcessingJobStatus"], job_message
+    else:
+        for job in response:
             job_message = {
                 "JOB_STATUS": job["ProcessingJobStatus"],
                 "JOB_MESSAGE": f'Job {job["ProcessingJobStatus"]} {d} days, {h} hours, {m} min, {s} secs ago.',
             }
-            if job["ProcessingJobStatus"] == "Failed":
-                job_message["JOB_MESSAGE"] += f'\n{job["FailureReason"]}'
-            return job["ProcessingJobStatus"], job_message
-
-    return (None, None)
-
+        job_message = {
+            "JOB_STATUS": f"{len(response)} jobs found",
+            "JOB_MESSAGE": {**job_message}
+        }
+        return (None, job_message)
+        
 
 def main(args):
     event = json.loads(open(EVENT_PATH).read())

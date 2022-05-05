@@ -858,7 +858,7 @@ def invoke(
             notebook = os.path.basename(notebook)
     # else:
     #     notebook = input_path
-    
+
     notebook_name = f"{parameters['JOB_ID']}.ipynb"
     params_name = f"{parameters['JOB_ID']}.json"
 
@@ -870,8 +870,8 @@ def invoke(
     if output_prefix is None:
         output_prefix = get_output_prefix()
     
-    if not notebook:
-        notebook = input_path
+    # if not notebook:
+    #     notebook = input_path
 
     extra_args = {}
     for f in extra_fns:
