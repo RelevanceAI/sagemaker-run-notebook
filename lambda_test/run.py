@@ -34,10 +34,10 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 
 event = {
     "body" :{
-            "JOB_ID": f"workflow-dev-core-cluster-fail-pls-{TIMESTAMP}",
+            "JOB_ID": f"workflow-dev-core-vectorize-fail-pls-{TIMESTAMP}",
             "JOB_TYPE": "sagemaker_processing",
             "TIMESTAMP": TIMESTAMP,
-            "WORKFLOW_NAME": "core-cluster",
+            "WORKFLOW_NAME": "core-vectorize",
             "DEBUG": True,
             "CONFIG": {
                 "dataset_id": "1341241234",
@@ -55,8 +55,6 @@ event = {
         }
     }
 
-
-json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
 
 
 WORKFLOW_S3_URIS = {}
@@ -126,7 +124,7 @@ def handler(event, context={}):
 
             ## ProcessingName Cleaning
             JOB_ID_L = body['JOB_ID'].replace('_', '-').split('-')
-            WORKFLOW_DATASET_ID='-'.join(JOB_ID_L[1:-2])[:50]
+            WORKFLOW_DATASET_ID='-'.join(JOB_ID_L[1:-1])[:50]
             JOB_ID = '-'.join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
 
             print(
@@ -135,8 +133,9 @@ def handler(event, context={}):
             # print(NOTEBOOK_PATH)
 
             ## To overcome 
+            print(NOTEBOOK_PATH)
             sm_job = run.invoke(
-                input_path=NOTEBOOK_PATH,
+                notebook=NOTEBOOK_PATH,
                 stage=stage,
                 image=f'sagemaker-run-notebook-{stage}',
                 role=EXECUTION_ROLE,
@@ -170,6 +169,8 @@ def handler(event, context={}):
             body["CONFIG"]["authorizationToken"]
         )
     
+    return return_response(response_code=response_code, body=body)
+    
 
 def return_response(response_code: int, body: dict) -> dict:
     response = {
@@ -186,12 +187,22 @@ def return_response(response_code: int, body: dict) -> dict:
     return response
 
 def main(args):
+    global event
     event['stage'] = args.stage
-    handler(event)
+    if not args.poll:
+        handler(event)
+        json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
+
+    
+    event = json.loads(open(EVENT_PATH).read())
+    if args.job_id:
+        event['body']['JOB_ID'] = args.job_id.strip()
     poll_handler(event)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--stage", default='dev', type=str, choices={"dev", "stg", "prd"}, help="Run debug mode")
+    parser.add_argument("-p", "--poll", action="store_true", help="Run in poll mode - automatically polls status for last known job")
+    parser.add_argument("-j", "--job-id", default=None, help="If you want to poll a specific job id")
     args = parser.parse_args()
     main(args)

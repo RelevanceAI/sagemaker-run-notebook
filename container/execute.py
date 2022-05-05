@@ -17,10 +17,10 @@ from __future__ import print_function
 
 import os
 import json
+from pathlib import Path
 import sys
 import traceback
 from urllib.parse import urlparse
-from urllib.request import urlopen
 
 import boto3
 import botocore
@@ -97,15 +97,19 @@ def run_notebook():
         trc = traceback.format_exc()
 
         error_message = "Exception during processing: " + str(e) + "\n" + trc
-        print(error_message, file=sys.stderr)
+        print(str(e))
+        print(str(trc))
 
-        with open("/opt/ml/output/message", "w") as f:
+        ## Local
+        with open("error", "w") as f:
             print(f"Writing failure message to file...")
-            f.write(error_message)
+            f.write(str(e))
 
-        # with open("error", "w") as f:
-        with open("/opt/ml/output/failure", "w") as f:
-            f.write(error_message)
+        # Sagemaker processing
+        if Path("/opt/ml/output/message").exists():
+            with open("/opt/ml/output/message", "w") as f:
+                print(f"Writing failure message to file...")
+                f.write(str(e))
 
         # A non-zero exit code causes the training job to be marked as Failed.
         print(f"Exiting Sagemaker job ...")

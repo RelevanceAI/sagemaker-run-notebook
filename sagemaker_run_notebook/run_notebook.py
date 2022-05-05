@@ -81,7 +81,6 @@ def upload_notebook(notebook, fname=None, session=None):
 
     ## Uploading notebook
     with open(notebook, "rb") as f:
-        print(type(f))
         return upload_fileobj(f, fname,  session)
     
 def upload_json(json_data, fname, session=None):
@@ -853,20 +852,18 @@ def invoke(
             notebook = os.path.basename(notebook)
     # else:
     #     notebook = input_path
-
     notebook_name = f"{parameters['JOB_ID']}.ipynb"
     params_name = f"{parameters['JOB_ID']}.json"
 
     if upload_parameters:
         parameters = {'S3_PATH': upload_json(parameters, params_name, session), 'JOB_ID': parameters['JOB_ID']}
 
+    
     if input_path is None:
         input_path = upload_notebook(notebook, notebook_name, session)
     if output_prefix is None:
         output_prefix = get_output_prefix()
-    
-    # if not notebook:
-    #     notebook = input_path
+
 
     extra_args = {}
     for f in extra_fns:
@@ -888,7 +885,7 @@ def invoke(
     }
 
     client = session.client("lambda")
-
+    
     result = client.invoke(
         FunctionName=f"{lambda_function_name}-{stage}",
         InvocationType="RequestResponse",
