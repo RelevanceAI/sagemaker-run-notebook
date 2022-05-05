@@ -55,5 +55,8 @@ test:
 test-lambda:
 	python lambda_test/run.py --stage $(STAGE)
 
+test-execute: build-and-push
+	cd container && docker run --rm -it -v ~/.aws:/root/.aws -v $(shell pwd)/container:/container/  --platform linux/amd64 -p 8080:8080 --env-file .env  sagemaker-run-notebook-$(STAGE) 
+
 docs:
 	(cd docs; make html)

@@ -31,12 +31,33 @@ input_var = "PAPERMILL_INPUT"
 output_var = "PAPERMILL_OUTPUT"
 params_var = "PAPERMILL_PARAMS"
 
-
+## Local testing - 
+PAPERMILL_PARAMS ="""{
+                "dataset_id": "1341241234",
+                "n_clusters": 10,
+                "vector_fields": [
+                    "review_a_vector_"
+                ],
+                "cutoff": 0.75,
+                "clusteringType": "community-detection",
+                "region": "us-east-1",
+                "project": "452d7499c071ab48e4e5",
+                "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
+                "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
+}"""
 def run_notebook():
     try:
+        if not os.getenv(input_var):
+            from dotenv import load_dotenv
+            load_dotenv()
+
         notebook_path = os.environ[input_var]
         output_notebook = os.environ[output_var]
-        params = json.loads(os.environ[params_var])
+
+        if not os.getenv(params_var):
+            params = json.loads(PAPERMILL_PARAMS)
+        else:
+            params = json.loads(os.environ[params_var])
 
         notebook_dir = os.path.dirname(notebook_path)
         notebook_file = os.path.basename(notebook_path)
@@ -85,7 +106,14 @@ def run_notebook():
         os.chdir(notebook_dir)
 
         print("Executing {} with output to {}".format(notebook_file, output_notebook))
-        print("Notebook params = {}".format(params))
+        
+        print(f"Notebook params = {json.dumps(params, indent=2)}")
+        
+        ## Mask creds
+        if params.get("authorizationToken"):
+           params["authorizationToken"] = "*" * len(
+                params["authorizationToken"]
+            )
         papermill.execute_notebook(
             notebook_file, output_notebook, params, kernel_name="python3"
         )
@@ -103,13 +131,14 @@ def run_notebook():
         ## Local
         with open("error", "w") as f:
             print(f"Writing failure message to file...")
-            f.write(str(e))
+            f.write(str(trc))
 
         # Sagemaker processing
         if Path("/opt/ml/output/message").exists():
             with open("/opt/ml/output/message", "w") as f:
                 print(f"Writing failure message to file...")
-                f.write(str(e))
+                error = str(sys.exc_info()[1])
+                f.write(str(error))     ## trc too large to be readable in error message
 
         # A non-zero exit code causes the training job to be marked as Failed.
         print(f"Exiting Sagemaker job ...")

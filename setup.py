@@ -88,6 +88,7 @@ setuptools.setup(
             "autodocsumm",
             "sphinx-argparse",
             "jupyterlab~=2.3",
+            "python-dotenv"
         ]
     },
     entry_points={

@@ -164,10 +164,10 @@ def handler(event, context={}):
         body = {**{"message": str(e)}, **body}
 
     ## Masking creds
-    if body["CONFIG"].get("authorizationToken"):
-        body["CONFIG"]["authorizationToken"] = "*" * len(
-            body["CONFIG"]["authorizationToken"]
-        )
+    # if body["CONFIG"].get("authorizationToken"):
+    #     body["CONFIG"]["authorizationToken"] = "*" * len(
+    #         body["CONFIG"]["authorizationToken"]
+    #     )
     
     return return_response(response_code=response_code, body=body)
     

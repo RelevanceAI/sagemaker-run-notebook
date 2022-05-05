@@ -1,0 +1,36 @@
+Traceback (most recent call last):
+  File "container/execute.py", line 117, in run_notebook
+    papermill.execute_notebook(
+  File "/home/charlene/code/sagemaker-run-notebook/.venv/lib/python3.8/site-packages/papermill/execute.py", line 122, in execute_notebook
+    raise_for_execution_errors(nb, output_path)
+  File "/home/charlene/code/sagemaker-run-notebook/.venv/lib/python3.8/site-packages/papermill/execute.py", line 234, in raise_for_execution_errors
+    raise error
+papermill.exceptions.PapermillExecutionError: 
+---------------------------------------------------------------------------
+Exception encountered at "In [3]":
+---------------------------------------------------------------------------
+ValueError                                Traceback (most recent call last)
+Input In [3], in <cell line: 7>()
+      3 import warnings
+      6 from relevanceai import Client 
+----> 7 client = Client(token=authorizationToken)
+      9 try:
+     10     if model_id == 'clip' and encode_type.lower() == 'image_urls':
+
+File ~/code/sagemaker-run-notebook/.venv/lib/python3.8/site-packages/relevanceai/client/client.py:66, in Client.__init__(self, token, authenticate)
+     63     token = auth()
+     65 self.token = token
+---> 66 self.credentials = process_token(token)
+     67 super().__init__(self.credentials)
+     69 # Eventually the following should be accessed directly from
+     70 # self.credentials, but keep for now.
+
+File ~/code/sagemaker-run-notebook/.venv/lib/python3.8/site-packages/relevanceai/client/helpers.py:103, in process_token(token)
+    100     raise TokenNotFoundError
+    102 # A token takes the format project:api_key:region:firebase_uid
+--> 103 project, api_key, *other_credentials = token.split(":")
+    105 if not project:
+    106     raise ProjectNotFoundError
+
+ValueError: not enough values to unpack (expected at least 2, got 1)
+
