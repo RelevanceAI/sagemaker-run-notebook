@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.23.0 (2022-05-05)
+
+This release supports - 
+
+- Uploading param file to get around 256 char limit container 
+
+    ```python
+    sm_job = run.invoke(
+                    input_path=NOTEBOOK_PATH,
+                    stage=stage,
+                    image=f'sagemaker-run-notebook-{stage}',
+                    role=EXECUTION_ROLE,
+                    parameters={**{"JOB_ID": body["JOB_ID"]}, **config},
+                    upload_parameters=True
+                )
+    ```
+  
 ## v0.22.1 (2022-05-04)
 
 Fixing Makefile
