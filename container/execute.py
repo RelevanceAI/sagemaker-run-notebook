@@ -48,6 +48,23 @@ PAPERMILL_PARAMS = """{
 
 ROOT_PATH = Path(__file__).parent
 
+# from traceback_json import render_orjson
+# import structlog
+
+# processors = [
+#         structlog.processors.add_log_level,
+#         structlog.processors.TimeStamper(),
+#     ]
+
+# processors.append(render_orjson)
+
+# structlog.configure(
+#         processors=processors,
+#     )
+# logger = structlog.get_logger()
+# from json_logger import Logger
+# logger = Logger()
+
 
 def run_notebook():
     try:
@@ -118,6 +135,7 @@ def run_notebook():
                 params_clean["authorizationToken"]
             )
         print(f"Notebook params = {json.dumps(params_clean, indent=2)}")
+        print(params)
 
         papermill.execute_notebook(
             notebook_file, output_notebook, params, kernel_name="python3"
@@ -125,38 +143,65 @@ def run_notebook():
         print("Execution complete")
 
     except Exception as e:
-        # Write out an error file. This will be returned as the failureReason in the
-        # DescribeProcessingJob result.
+        # Write out an error file. This will be returned as the ExitMessage in the DescribeProcessingJob result.
         trc = traceback.format_exc()
 
         error_message = "Exception during processing: " + str(e) + "\n" + trc
         # print(str(trc))
 
         trc_data = trc.splitlines()
-        # trc_first_last = '\n'.join([trc_data[-1]] + trc_data[1:-1])
         ## Returning first error
-        for i, l in enumerate(trc_data):
-            if l.startswith("Input"):
-                start_index = i
-                break
+        # start_index = 0
+        # for i, l in enumerate(trc_data):
+        #     if l.startswith("Input"):
+        #         start_index = i
+        #         break
 
-        error_message = trc_data[-2]
-        for i, l in enumerate(trc_data[start_index:-1]):
-            error_message += f"\n{l}"
-            if l == "":
-                break
+        # error_message = trc_data[-2]
+        # for i, l in enumerate(trc_data[start_index:-1]):
+        #     error_message += f"\n{l}"
+        #     if l == "":
+        #         break
 
         if not os.getenv(params_var):
             FPATH = ROOT_PATH / "error"  ## Local
         else:
             FPATH = "/opt/ml/output/message"
 
+        #
+        # Outputing log to S3
+        # logger = configure_traceback_json_logger(filename=FPATH)
+        # logger.exception( e, exc_info=e)
+        # logger.error( e)
+
+        # import logging
+        # logging.FileHandler(FPATH)
+
+        # with open(FPATH, "r") as f:
+        #     print(f"Reading failure message to file...")
+        #     import json
+        #     print(json.loads(f.read()))
+
+        # print(type(logging.exception( e, exc_info=e, filename=FPATH)))
+
+        # json.dump(open(ROOT_PATH / "error.json" , json.loads(logging.exception( e, exc_info=e))))
         # Sagemaker processing
+
+        # Dump as valid json
+        err = trc_data[-2]
+        err_s = err.split(": ")
+        err_dict = {err_s[0]: json.loads(err_s[1])}
+        err = json.dumps(err_dict)
+
         with open(FPATH, "w") as f:
             print(f"Writing failure message to file...")
-            f.write(error_message)
+            f.write(err)
 
-        # A non-zero exit code causes the training job to be marked as Failed.
+        with open(ROOT_PATH / "error", "r") as f:
+            print(f"Reading failure message to file...")
+            print(json.load(f))
+
+        # A non-zero exit code causes the training job to be marked as Failed logger.
         print(f"Exiting Sagemaker job ...")
         sys.exit(1)
         # output_notebook = "xyzzy"  # Dummy for print, below

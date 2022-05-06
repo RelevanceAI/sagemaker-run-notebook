@@ -32,10 +32,10 @@ clean:
 clean-python:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
-	find . -type d -name "*.egg-info" -delete
+	find . -type f -name "*.log" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf "{}" \;
 	find . -type d -name ".pytest_cache" -exec rm -rf "{}" \;
 	find . -type f -name "*.coverage" -delete
-	find . -type d -name "cdk.out"  -exec rm -rf "{}" \;
 
 cfntemplate: sagemaker_run_notebook/cloudformation.yml
 

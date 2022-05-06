@@ -37,8 +37,6 @@ EVENT_PATH = f"{FILE_DIR}/event.json"
 
 
 def handler(event, context={}):
-
-    #
     body = event["body"]
     config = body["CONFIG"]
 

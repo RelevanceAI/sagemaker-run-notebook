@@ -1,4 +1,6 @@
 /run_notebook
 /*.sh
 Dockerfile
+.env
 error
+traceback_json.py

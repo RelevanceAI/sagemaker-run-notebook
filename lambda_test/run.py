@@ -130,7 +130,7 @@ def handler(event, context={}):
             ## To overcome
             print(NOTEBOOK_PATH)
             sm_job = run.invoke(
-                notebook=NOTEBOOK_PATH,
+                input_path=NOTEBOOK_PATH,
                 stage=stage,
                 image=f"sagemaker-run-notebook-{stage}",
                 role=EXECUTION_ROLE,
