@@ -21,6 +21,7 @@ release: install test docs
 install: clean
 	# Use the -e[dev] option to allow the code to be instrumented for code coverage
 	pip install -e ".[dev]"
+	pre-commit install
 	jupyter serverextension enable --py sagemaker_run_notebook --sys-prefix
 
 clean:
@@ -44,7 +45,7 @@ create-infra:
 sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
-	
+
 update-infra: sagemaker_run_notebook/cloudformation.yml
 	run-notebook create-infrastructure --update --stage $(STAGE)
 
@@ -57,14 +58,14 @@ artifacts: clean cfntemplate
 test:
   # No python tests implemented yet
 	# pytest -v .
-	black --check .
+	black .
 	# python lambda_test.run.py
 
 test-lambda:
 	python lambda_test/run.py --stage $(STAGE)
 
 test-execute: build-and-push
-	cd container && docker run --rm -it -v ~/.aws:/root/.aws -v $(shell pwd)/container:/container/  --platform linux/amd64 -p 8080:8080 --env-file .env  sagemaker-run-notebook-$(STAGE) 
+	cd container && docker run --rm -it -v ~/.aws:/root/.aws -v $(shell pwd)/container:/container/  --platform linux/amd64 -p 8080:8080 --env-file .env  sagemaker-run-notebook-$(STAGE)
 
 docs:
 	(cd docs; make html)

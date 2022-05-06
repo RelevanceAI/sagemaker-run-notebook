@@ -37,8 +37,8 @@ EVENT_PATH = f"{FILE_DIR}/event.json"
 
 
 def handler(event, context={}):
-    
-    # 
+
+    #
     body = event["body"]
     config = body["CONFIG"]
 
@@ -50,12 +50,14 @@ def handler(event, context={}):
 
     if body["JOB_TYPE"] == "sagemaker_processing":
         ## ProcessingName Cleaning
-        JOB_ID_L = body['JOB_ID'].replace('_', '-').split('-')
-        WORKFLOW_DATASET_ID='-'.join(JOB_ID_L[1:-1])[:50]
-        JOB_ID = '-'.join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
+        JOB_ID_L = body["JOB_ID"].replace("_", "-").split("-")
+        WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
+        JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
         print(JOB_ID)
 
-        job_status, job_message = check_sm_job_status(job_id=JOB_ID, timestamp=body["TIMESTAMP"])
+        job_status, job_message = check_sm_job_status(
+            job_id=JOB_ID, timestamp=body["TIMESTAMP"]
+        )
         if not job_status:
             response_code = 500
             job_message = {
@@ -99,7 +101,7 @@ def days_hours_minutes_seconds(td):
     return td.days, hours, minutes, round(seconds, 2)
 
 
-def check_sm_job_status(job_id: str, timestamp:str):
+def check_sm_job_status(job_id: str, timestamp: str):
     # aest = dateutil.tz.gettz("Australia/Sydney")
     # dt_last_half_hour = datetime.now(timezone.utc) - timedelta(minutes=30)
 
@@ -113,7 +115,7 @@ def check_sm_job_status(job_id: str, timestamp:str):
         job = sm_client.describe_processing_job(ProcessingJobName=str(job_id))
     except Exception as e:
         print(e)
-        print(f'Job Id {job_id} does not exist in Sagemaker Processing jobs.')
+        print(f"Job Id {job_id} does not exist in Sagemaker Processing jobs.")
         job = None
 
     if job:
@@ -129,14 +131,14 @@ def check_sm_job_status(job_id: str, timestamp:str):
             job_message["JOB_MESSAGE"] += f'\n{job.get("ExitMessage")}'
         return job["ProcessingJobStatus"], job_message
     else:
-        
+
         # job_messages = []
         # for job in response:
         #     job_messages.append( {
         #         "JOB_STATUS": job["ProcessingJobStatus"],
         #         "JOB_MESSAGE": f'Job {job["ProcessingJobStatus"]} {d} days, {h} hours, {m} min, {s} secs ago.',
         #     })
-        
+
         # job_message = {
         #     "JOB_STATUS": f"{len(response)} jobs found",
         #     "JOB_MESSAGE": job_messages,

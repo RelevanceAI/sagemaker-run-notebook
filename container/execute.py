@@ -31,8 +31,8 @@ input_var = "PAPERMILL_INPUT"
 output_var = "PAPERMILL_OUTPUT"
 params_var = "PAPERMILL_PARAMS"
 
-## Local testing - 
-PAPERMILL_PARAMS ="""{
+## Local testing -
+PAPERMILL_PARAMS = """{
                 "dataset_id": "the-sdsds",
                 "n_clusters": 10,
                 "vector_fields": [
@@ -47,10 +47,13 @@ PAPERMILL_PARAMS ="""{
 }"""
 
 ROOT_PATH = Path(__file__).parent
+
+
 def run_notebook():
     try:
         if not os.getenv(input_var):
             from dotenv import load_dotenv
+
             load_dotenv()
 
         notebook_path = os.environ[input_var]
@@ -82,8 +85,8 @@ def run_notebook():
                 raise
             print("Download complete")
 
-        if params.get('S3_PATH'):
-            params_path = params.get('S3_PATH')
+        if params.get("S3_PATH"):
+            params_path = params.get("S3_PATH")
             # params_dir = os.path.dirname(params_path)
             params_file = os.path.basename(params_path)
 
@@ -111,11 +114,11 @@ def run_notebook():
         ## Mask creds
         params_clean = params.copy()
         if params_clean.get("authorizationToken"):
-           params_clean["authorizationToken"] = "*" * len(
+            params_clean["authorizationToken"] = "*" * len(
                 params_clean["authorizationToken"]
             )
         print(f"Notebook params = {json.dumps(params_clean, indent=2)}")
-        
+
         papermill.execute_notebook(
             notebook_file, output_notebook, params, kernel_name="python3"
         )
@@ -129,7 +132,7 @@ def run_notebook():
         error_message = "Exception during processing: " + str(e) + "\n" + trc
         # print(str(trc))
 
-        trc_data  = trc.splitlines()
+        trc_data = trc.splitlines()
         # trc_first_last = '\n'.join([trc_data[-1]] + trc_data[1:-1])
         ## Returning first error
         for i, l in enumerate(trc_data):
@@ -139,11 +142,12 @@ def run_notebook():
 
         error_message = trc_data[-2]
         for i, l in enumerate(trc_data[start_index:-1]):
-            error_message += f'\n{l}'
-            if l == '': break
-                
+            error_message += f"\n{l}"
+            if l == "":
+                break
+
         if not os.getenv(params_var):
-            FPATH = ROOT_PATH / "error" ## Local
+            FPATH = ROOT_PATH / "error"  ## Local
         else:
             FPATH = "/opt/ml/output/message"
 

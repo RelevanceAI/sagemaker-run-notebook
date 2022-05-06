@@ -26,35 +26,31 @@ tags_metadata = []
 
 
 FILE_DIR = Path(__file__).parent
-EVENT_PATH = f'{FILE_DIR}/event.json'
+EVENT_PATH = f"{FILE_DIR}/event.json"
 TIMESTAMP = int(datetime.now().timestamp())
 JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 
 
-
 event = {
-    "body" :{
-            "JOB_ID": f"workflow-dev-core-vectorize-fail-pls-{TIMESTAMP}",
-            "JOB_TYPE": "sagemaker_processing",
-            "TIMESTAMP": TIMESTAMP,
-            "WORKFLOW_NAME": "core-vectorize",
-            "DEBUG": True,
-            "CONFIG": {
-                "dataset_id": "1341241234",
-                "n_clusters": 10,
-                "vector_fields": [
-                    "review_a_vector_"
-                ],
-                "cutoff": 0.75,
-                "clusteringType": "community-detection",
-                "region": "us-east-1",
-                "project": "452d7499c071ab48e4e5",
-                "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
-                "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
-            }
-        }
+    "body": {
+        "JOB_ID": f"workflow-dev-core-vectorize-fail-pls-{TIMESTAMP}",
+        "JOB_TYPE": "sagemaker_processing",
+        "TIMESTAMP": TIMESTAMP,
+        "WORKFLOW_NAME": "core-vectorize",
+        "DEBUG": True,
+        "CONFIG": {
+            "dataset_id": "1341241234",
+            "n_clusters": 10,
+            "vector_fields": ["review_a_vector_"],
+            "cutoff": 0.75,
+            "clusteringType": "community-detection",
+            "region": "us-east-1",
+            "project": "452d7499c071ab48e4e5",
+            "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
+            "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2",
+        },
     }
-
+}
 
 
 WORKFLOW_S3_URIS = {}
@@ -67,13 +63,15 @@ WORKFLOW_S3_URIS = {}
 
 
 def handler(event, context={}):
-    
+
     # body = json.loads(event["body"])
-    body = event['body']
-    stage = event['stage']
+    body = event["body"]
+    stage = event["stage"]
     config = body["CONFIG"]
 
-    NOTEBOOK_EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{stage}"
+    NOTEBOOK_EXECUTION_ROLE = os.environ[
+        "NOTEBOOK_EXECUTION_ROLE"
+    ] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{stage}"
 
     print(json.dumps(body, indent=2))
 
@@ -88,7 +86,7 @@ def handler(event, context={}):
     #             **body,
     #         }
     #         return return_response(response_code=500, body=body)
-    SUPPORT_ACTIVATION_TOKEN = os.environ['SUPPORT_ACTIVATION_TOKEN']
+    SUPPORT_ACTIVATION_TOKEN = os.environ["SUPPORT_ACTIVATION_TOKEN"]
 
     ## If not authToken in payload, load support
     if not config.get("authorizationToken"):
@@ -101,10 +99,9 @@ def handler(event, context={}):
         WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url"].exists())
         for w in WORKFLOWS:
             if w["s3_url"].get(stage):
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][stage] 
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][stage]
             else:
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]['dev'] 
-
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]["dev"]
 
     WORKFLOW_NAME = body.get("WORKFLOW_NAME")
     NOTEBOOK_PATH = WORKFLOW_S3_URIS.get(WORKFLOW_NAME)
@@ -123,34 +120,29 @@ def handler(event, context={}):
             EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"]
 
             ## ProcessingName Cleaning
-            JOB_ID_L = body['JOB_ID'].replace('_', '-').split('-')
-            WORKFLOW_DATASET_ID='-'.join(JOB_ID_L[1:-1])[:50]
-            JOB_ID = '-'.join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
+            JOB_ID_L = body["JOB_ID"].replace("_", "-").split("-")
+            WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
+            JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
 
-            print(
-                f'Invoking Sagemaker processing job {JOB_ID} with {EXECUTION_ROLE}'
-            )
+            print(f"Invoking Sagemaker processing job {JOB_ID} with {EXECUTION_ROLE}")
             # print(NOTEBOOK_PATH)
 
-            ## To overcome 
+            ## To overcome
             print(NOTEBOOK_PATH)
             sm_job = run.invoke(
                 notebook=NOTEBOOK_PATH,
                 stage=stage,
-                image=f'sagemaker-run-notebook-{stage}',
+                image=f"sagemaker-run-notebook-{stage}",
                 role=EXECUTION_ROLE,
                 parameters={**{"JOB_ID": JOB_ID}, **config},
-                upload_parameters=True
+                upload_parameters=True,
             )
             if sm_job:
                 response_code = 200
                 body = {
-                    **{
-                        "message": f'Sagemaker Processing job created for {JOB_ID}.'
-                    },
+                    **{"message": f"Sagemaker Processing job created for {JOB_ID}."},
                     **body,
                 }
-                
 
         # print("Wait for job to complete ...")
         # start = time.time()
@@ -168,9 +160,9 @@ def handler(event, context={}):
     #     body["CONFIG"]["authorizationToken"] = "*" * len(
     #         body["CONFIG"]["authorizationToken"]
     #     )
-    
+
     return return_response(response_code=response_code, body=body)
-    
+
 
 def return_response(response_code: int, body: dict) -> dict:
     response = {
@@ -186,23 +178,38 @@ def return_response(response_code: int, body: dict) -> dict:
     response["body"] = json.dumps(body)
     return response
 
+
 def main(args):
     global event
-    event['stage'] = args.stage
+    event["stage"] = args.stage
     if not args.poll:
         handler(event)
         json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
 
-    
     event = json.loads(open(EVENT_PATH).read())
     if args.job_id:
-        event['body']['JOB_ID'] = args.job_id.strip()
+        event["body"]["JOB_ID"] = args.job_id.strip()
     poll_handler(event)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-s", "--stage", default='dev', type=str, choices={"dev", "stg", "prd"}, help="Run debug mode")
-    parser.add_argument("-p", "--poll", action="store_true", help="Run in poll mode - automatically polls status for last known job")
-    parser.add_argument("-j", "--job-id", default=None, help="If you want to poll a specific job id")
+    parser.add_argument(
+        "-s",
+        "--stage",
+        default="dev",
+        type=str,
+        choices={"dev", "stg", "prd"},
+        help="Run debug mode",
+    )
+    parser.add_argument(
+        "-p",
+        "--poll",
+        action="store_true",
+        help="Run in poll mode - automatically polls status for last known job",
+    )
+    parser.add_argument(
+        "-j", "--job-id", default=None, help="If you want to poll a specific job id"
+    )
     args = parser.parse_args()
     main(args)

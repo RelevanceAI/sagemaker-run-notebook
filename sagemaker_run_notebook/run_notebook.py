@@ -59,6 +59,7 @@ def abbreviate_role(role):
     else:
         return role
 
+
 def upload_notebook(notebook, fname=None, session=None):
     """Uploads a file obj to S3 in the default SageMaker Python SDK bucket for
     this user. The resulting S3 object will be named "s3://<bucket>/papermill-input/notebook-<%Y-%m-%d-%H-%M-%S>.ipynb".
@@ -81,22 +82,18 @@ def upload_notebook(notebook, fname=None, session=None):
 
     ## Uploading notebook
     with open(notebook, "rb") as f:
-        return upload_fileobj(f, fname,  session)
-    
+        return upload_fileobj(f, fname, session)
+
+
 def upload_json(json_data, fname, session=None):
     session = ensure_session(session)
     s3 = session.client("s3")
     key = "papermill_input/" + fname
     bucket = default_bucket(session)
     s3path = "s3://{}/{}".format(bucket, key)
-    print(f'Uploading {fname} to {s3path}')
-    s3.put_object(
-        Body=json.dumps(json_data),
-        Bucket=bucket,
-        Key=key
-    )
+    print(f"Uploading {fname} to {s3path}")
+    s3.put_object(Body=json.dumps(json_data), Bucket=bucket, Key=key)
     return s3path
-
 
 
 def upload_fileobj(fobj, fname, session=None):
@@ -120,7 +117,7 @@ def upload_fileobj(fobj, fname, session=None):
     key = "papermill_input/" + fname
     bucket = default_bucket(session)
     s3path = "s3://{}/{}".format(bucket, key)
-    print(f'Uploading {fname} to {s3path}')
+    print(f"Uploading {fname} to {s3path}")
     s3.upload_fileobj(fobj, bucket, key)
     return s3path
 
@@ -856,14 +853,15 @@ def invoke(
     params_name = f"{parameters['JOB_ID']}.json"
 
     if upload_parameters:
-        parameters = {'S3_PATH': upload_json(parameters, params_name, session), 'JOB_ID': parameters['JOB_ID']}
+        parameters = {
+            "S3_PATH": upload_json(parameters, params_name, session),
+            "JOB_ID": parameters["JOB_ID"],
+        }
 
-    
     if input_path is None:
         input_path = upload_notebook(notebook, notebook_name, session)
     if output_prefix is None:
         output_prefix = get_output_prefix()
-
 
     extra_args = {}
     for f in extra_fns:
@@ -872,7 +870,6 @@ def invoke(
     if stage not in image:
         image = f"{image}-{stage}"
 
-    
     args = {
         "image": image,
         "input_path": input_path,
@@ -885,7 +882,7 @@ def invoke(
     }
 
     client = session.client("lambda")
-    
+
     result = client.invoke(
         FunctionName=f"{lambda_function_name}-{stage}",
         InvocationType="RequestResponse",
@@ -922,13 +919,13 @@ def schedule(
 
     Creates a CloudWatch Event rule to invoke the installed Lambda either on the provided schedule or in response
     to the provided event. \
-  
-    :meth:`schedule` can upload a local notebook file to run or use one previously uploaded to S3. 
-    To find jobs run by the schedule, see :meth:`list_runs` using the `rule` argument to filter to 
-    a specific rule. To download the results, see :meth:`download_notebook` (or :meth:`download_all` 
+
+    :meth:`schedule` can upload a local notebook file to run or use one previously uploaded to S3.
+    To find jobs run by the schedule, see :meth:`list_runs` using the `rule` argument to filter to
+    a specific rule. To download the results, see :meth:`download_notebook` (or :meth:`download_all`
     to download a group of notebooks based on a :meth:`list_runs` call).
 
-    To add extra arguments to the SageMaker Processing job, you can use the `extra_fns` argument. Each element of 
+    To add extra arguments to the SageMaker Processing job, you can use the `extra_fns` argument. Each element of
     that list is a function that takes a dict and returns a dict with new fields added. For example::
 
         def time_limit(seconds):
@@ -941,19 +938,19 @@ def schedule(
 
     Args:
         notebook (str): The notebook name. If `input_path` is None, this is a file to be uploaded before the Lambda is called.
-                        all cases it is used as the name of the notebook when it's running and serves as the base of the 
+                        all cases it is used as the name of the notebook when it's running and serves as the base of the
                         output file name (with a timestamp attached) (required).
         rule_name (str): The name of the rule for CloudWatch Events (required).
-        schedule (str): A schedule string which defines when the job should be run. For details, 
-                        see https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html 
+        schedule (str): A schedule string which defines when the job should be run. For details,
+                        see https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html
                         (default: None. Note: one of `schedule` or `event_pattern` must be specified).
-        event_pattern (str): A pattern for events that will trigger notebook execution. For details, 
-                             see https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html. 
+        event_pattern (str): A pattern for events that will trigger notebook execution. For details,
+                             see https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEventsandEventPatterns.html.
                              (default: None. Note: one of `schedule` or `event_pattern` must be specified).
         image (str): The ECR image that defines the environment to run the job (Default: "sagemaker-run-notebook").
         input_path (str): The S3 object containing the notebook. If this is None, the `notebook` argument is
                           taken as a local file to upload (default: None).
-        output_prefix (str): The prefix path in S3 for where to store the output notebook 
+        output_prefix (str): The prefix path in S3 for where to store the output notebook
                              (default: determined based on SageMaker Python SDK).
         parameters (dict): The dictionary of parameters to pass to the notebook (default: {}).
         role (str): The name of a role to use to run the notebook. This can be a name local to the account or a full ARN
