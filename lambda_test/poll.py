@@ -126,7 +126,16 @@ def check_sm_job_status(job_id: str, timestamp: str):
             "JOB_MESSAGE": f'Job {job["ProcessingJobStatus"]} {d} days, {h} hours, {m} min, {s} secs ago.',
         }
         if job["ProcessingJobStatus"] == "Failed":
-            job_message["JOB_MESSAGE"] += f'\n{job.get("ExitMessage")}'
+            if job.get("ExitMessage"):
+                try:
+                    exit_message = json.loads(job.get("ExitMessage"))
+                except:
+                    exit_message = job.get("ExitMessage")
+                job_message["JOB_MESSAGE"] = {
+                    "message": job_message["JOB_MESSAGE"],
+                    "exit_message": f"{exit_message}",
+                }
+
         return job["ProcessingJobStatus"], job_message
     else:
 

@@ -9,6 +9,8 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install -U pip
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+RUN ipython kernel install --name "python3" --user
+
 # VOLUME [ "/opt/app" ]
 
 # ENV PATH="/opt/program:${PATH}"

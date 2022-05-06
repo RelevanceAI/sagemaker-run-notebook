@@ -179,7 +179,6 @@ def run_notebook():
 
         # with open(FPATH, "r") as f:
         #     print(f"Reading failure message to file...")
-        #     import json
         #     print(json.loads(f.read()))
 
         # print(type(logging.exception( e, exc_info=e, filename=FPATH)))
@@ -197,7 +196,7 @@ def run_notebook():
             print(f"Writing failure message to file...")
             f.write(err)
 
-        with open(ROOT_PATH / "error", "r") as f:
+        with open(FPATH, "r") as f:
             print(f"Reading failure message to file...")
             print(json.load(f))
 
