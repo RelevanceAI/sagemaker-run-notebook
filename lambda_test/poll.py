@@ -133,12 +133,12 @@ def check_sm_job_status(job_id: str, timestamp: str):
                     exit_message = job.get("ExitMessage")
                 job_message["JOB_MESSAGE"] = {
                     "message": job_message["JOB_MESSAGE"],
-                    "exit_message": f"{exit_message}",
+                    "exit_message": exit_message,
                 }
 
         return job["ProcessingJobStatus"], job_message
-    else:
 
+    else:
         # job_messages = []
         # for job in response:
         #     job_messages.append( {

@@ -188,8 +188,9 @@ def run_notebook():
 
         # Dump as valid json
         err = trc_data[-2]
+
         err_s = err.split(": ")
-        err_dict = {err_s[0]: json.loads(err_s[1])}
+        err_dict = {"error": err_s[0], "message": json.loads(err_s[1])}
         err = json.dumps(err_dict)
 
         with open(FPATH, "w") as f:
