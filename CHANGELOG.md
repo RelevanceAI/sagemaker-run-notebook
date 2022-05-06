@@ -4,8 +4,33 @@
 
 This release supports -
 
-- Error message dump formatted as JSON for API render
-- 
+- Error message dump formatted as JSON for API render 
+
+error message returned on Job failure
+eg. 
+```json
+{"APIError": {"message": "Dataset could not be found in project."}}
+```
+
+API response
+
+```
+{
+	"JOB_STATUS": "Failed",
+	"JOB_MESSAGE": {
+		"message": "Job Failed 0 days, 0 hours, 5 min, 12.34 secs ago.",
+		"exit_message": {
+			"error": "APIError",
+			"message": {
+				"message": "Dataset could not be found in project."
+			}
+		}
+	},
+...
+```
+
+
+
 ## v0.24.0 (2022-05-06)
 
 This release supports -
