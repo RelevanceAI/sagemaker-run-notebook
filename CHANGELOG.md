@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.24.0 (2022-05-06)
+
+This release supports -
+
+- Filtering sagemaker-run-notebook traceback error for Sagemaker Processing ErrorMessage and API
+
 ## v0.23.0 (2022-05-05)
 
 This release supports -
