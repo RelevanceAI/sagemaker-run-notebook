@@ -27,7 +27,7 @@ sudo -u ec2-user -i <<'EOF'
 
 # PARAMETERS
 <<<<<<< Updated upstream
-VERSION=0.23.0
+VERSION=0.24.0
 =======
 VERSION=0.21.0
 >>>>>>> Stashed changes

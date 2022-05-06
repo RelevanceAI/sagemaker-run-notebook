@@ -27,6 +27,8 @@ clean:
 	rm -f sagemaker_run_notebook/cloudformation.yml
 	rm -rf build/dist
 	rm -rf docs/build/html/*
+
+clean-python:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 	find . -type d -name "*.egg-info" -delete
