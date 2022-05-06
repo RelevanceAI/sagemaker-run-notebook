@@ -33,7 +33,7 @@ params_var = "PAPERMILL_PARAMS"
 
 ## Local testing - 
 PAPERMILL_PARAMS ="""{
-                "dataset_id": "1341241234",
+                "dataset_id": "the-sdsds",
                 "n_clusters": 10,
                 "vector_fields": [
                     "review_a_vector_"
@@ -45,6 +45,8 @@ PAPERMILL_PARAMS ="""{
                 "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
                 "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
 }"""
+
+ROOT_PATH = Path(__file__).parent
 def run_notebook():
     try:
         if not os.getenv(input_var):
@@ -106,14 +108,14 @@ def run_notebook():
         os.chdir(notebook_dir)
 
         print("Executing {} with output to {}".format(notebook_file, output_notebook))
-        
-        print(f"Notebook params = {json.dumps(params, indent=2)}")
-        
         ## Mask creds
-        if params.get("authorizationToken"):
-           params["authorizationToken"] = "*" * len(
-                params["authorizationToken"]
+        params_clean = params.copy()
+        if params_clean.get("authorizationToken"):
+           params_clean["authorizationToken"] = "*" * len(
+                params_clean["authorizationToken"]
             )
+        print(f"Notebook params = {json.dumps(params_clean, indent=2)}")
+        
         papermill.execute_notebook(
             notebook_file, output_notebook, params, kernel_name="python3"
         )
@@ -125,20 +127,30 @@ def run_notebook():
         trc = traceback.format_exc()
 
         error_message = "Exception during processing: " + str(e) + "\n" + trc
-        print(str(e))
-        print(str(trc))
+        # print(str(trc))
 
-        ## Local
-        with open("error", "w") as f:
-            print(f"Writing failure message to file...")
-            f.write(str(trc))
+        trc_data  = trc.splitlines()
+        # trc_first_last = '\n'.join([trc_data[-1]] + trc_data[1:-1])
+        ## Returning first error
+        for i, l in enumerate(trc_data):
+            if l.startswith("Input"):
+                start_index = i
+                break
+
+        error_message = trc_data[-2]
+        for i, l in enumerate(trc_data[start_index:-1]):
+            error_message += f'\n{l}'
+            if l == '': break
+                
+        if not os.getenv(params_var):
+            FPATH = ROOT_PATH / "error" ## Local
+        else:
+            FPATH = "/opt/ml/output/message"
 
         # Sagemaker processing
-        if Path("/opt/ml/output/message").exists():
-            with open("/opt/ml/output/message", "w") as f:
-                print(f"Writing failure message to file...")
-                error = str(sys.exc_info()[1])
-                f.write(str(error))     ## trc too large to be readable in error message
+        with open(FPATH, "w") as f:
+            print(f"Writing failure message to file...")
+            f.write(error_message)
 
         # A non-zero exit code causes the training job to be marked as Failed.
         print(f"Exiting Sagemaker job ...")
