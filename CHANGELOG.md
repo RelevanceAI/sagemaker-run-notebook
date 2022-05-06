@@ -1,18 +1,10 @@
 # Changelog
 
-## v0.24.0 (2022-05-06)
-
-This release supports - 
-
-- Filtering sagemaker-run-notebook traceback error for Sagemaker Processing ErrorMessage and API
-
- 
-
 ## v0.23.0 (2022-05-05)
 
-This release supports - 
+This release supports -
 
-- Uploading param file to get around 256 char limit container 
+- Uploading param file to get around 256 char limit container
 
     ```python
     sm_job = run.invoke(
@@ -24,13 +16,13 @@ This release supports -
                     upload_parameters=True
                 )
     ```
-  
+
 ## v0.22.1 (2022-05-04)
 
 Fixing Makefile
 ## v0.22.0 (2022-05-04)
 
-This release supports - 
+This release supports -
 
 - Ability to deploy in stages (dev, stg, prd). All resources are appended with stage name. Default is dev.
     ```zsh
@@ -42,21 +34,21 @@ This release supports -
 
 ## v0.21.4 (2022-05-03)
 
-This release supports - 
+This release supports -
 
 - Sagemaker Processing Job fails if notebook fail.
 
 ## v0.21.3 (2022-04-29)
 
-This release supports - 
+This release supports -
 
 - Removing "JOB_ID" from params to reduce chance of hitting [265 char limit on Sagemaker Processing container](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProcessingJob.html)
-  
+
 ## v0.21.0 (2022-04-29)
 
-This release supports - 
+This release supports -
 
-- S3 URL input upon invoke. 
+- S3 URL input upon invoke.
 - changing Processing job name to param "JOB_ID" of format "workflow-cluster-<datetime.now().timestamp()>" - from incoming request payload
 
 ## v0.20.0 (2021-12-09)
@@ -135,7 +127,7 @@ Two small changes:
 
 * Run notebooks written in R or other languages. See the newly added [R example][example] for information.
 * When using the CLI or Library, you can supply extra arguments to the SageMaker Processing Job used to execute the notebook. For example to allow your notebook to run for up to a full day, invoke your notebook with `run-notebook run foo.ipynb --extra '{"StoppingCondition":{"MaxRuntimeInSeconds":86400}}'`. Using this mechanism, you can add extra inputs and outputs, connect to a VPC, add environment variables, expand disk space, add the run to a specific experiment, etc. See the [documentation for SageMaker Processing Jobs][processing-jobs] for more.
-  
+
 [example]: https://github.com/aws-samples/sagemaker-run-notebook/tree/master/examples/R
 [processing-jobs]: https://docs.aws.amazon.com/cli/latest/reference/sagemaker/create-processing-job.html
 
