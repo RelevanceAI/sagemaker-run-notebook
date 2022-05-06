@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.24.1 (2022-05-06)
+
+This release supports -
+
+- Error message dump formatted as JSON for API render
+- 
 ## v0.24.0 (2022-05-06)
 
 This release supports -
