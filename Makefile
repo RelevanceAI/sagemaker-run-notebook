@@ -13,7 +13,7 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-STAGE ?= dev ## dev, stg, prd
+STAGE ?= stg ## dev, stg, prd
 
 release: install test docs
 	make artifacts
@@ -33,6 +33,7 @@ clean-python:
 	find . -type f -name "*.py[co]" -delete
 	find . -type d -name "__pycache__" -delete
 	find . -type f -name "*.log" -delete
+	find . -type f -name "*.temp" -delete
 	find . -type d -name "*.egg-info" -exec rm -rf "{}" \;
 	find . -type d -name ".pytest_cache" -exec rm -rf "{}" \;
 	find . -type f -name "*.coverage" -delete
@@ -46,11 +47,11 @@ sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
 
-update-infra: sagemaker_run_notebook/cloudformation.yml
-	run-notebook create-infrastructure --update --stage $(STAGE)
-
 build-and-push:
 	cd container && ./build_and_push.sh sagemaker-run-notebook-$(STAGE)
+
+update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
+	run-notebook create-infrastructure --update --stage $(STAGE)
 
 artifacts: clean cfntemplate
 	python setup.py sdist --dist-dir build/dist

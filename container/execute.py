@@ -33,17 +33,11 @@ params_var = "PAPERMILL_PARAMS"
 
 ## Local testing -
 PAPERMILL_PARAMS = """{
-                "dataset_id": "the-office-series",
-                "n_clusters": 10,
-                "vector_fields": [
-                    "review_a_vector_"
-                ],
-                "cutoff": 0.75,
-                "clusteringType": "",
-                "region": "us-east-1",
-                "project": "452d7499c071ab48e4e5",
-                "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
-                "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
+            "dataset_id": "test-vectorize",
+            "model_id": "clip",
+            "encode_type": "image_urls",
+            "fields": ["product_image"],
+            "authorizationToken":"452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
 }"""
 
 ROOT_PATH = Path(__file__).parent
