@@ -184,7 +184,7 @@ def run_notebook():
             err_dict = {"error": err_s[0], **json.loads(err_s[1])}
             err = json.dumps(err_dict)
         except Exception as e:
-            print(f"Error loading error message as dixt: {e}")
+            print(f"Error loading error message as dict: {e}")
 
         with open(FPATH, "w") as f:
             print(f"Writing failure message to file...")

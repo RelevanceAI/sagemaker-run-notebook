@@ -51,16 +51,16 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 
 event = {
     "body": {
-        "JOB_ID": f"workflow-stg-core-test-vectorize-{TIMESTAMP}",
+        "JOB_ID": f"workflow-stg-mpnet-test-vectorize-{TIMESTAMP}",
         "JOB_TYPE": "sagemaker_processing",
         "TIMESTAMP": TIMESTAMP,
         "WORKFLOW_NAME": "core-vectorize",
         "DEBUG": True,
         "CONFIG": {
             "dataset_id": "test-vectorize",
-            "model_id": "",
-            "encode_type": "clip",
-            "fields": ["product_image"],
+            "model_id": "mpnet",
+            "encode_type": "text",
+            "fields": ["product_title"],
             "authorizationToken": f'{os.environ["TEST_REGINES_TOKEN"]}',
         },
     }
