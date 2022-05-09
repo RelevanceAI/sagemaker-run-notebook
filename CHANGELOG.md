@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.24.2 (2022-05--0)
+## v0.24.3 (2022-05-09)
+
+This release supports -
+
+- Fixing missing deps for clip vectorization (matplotlib)
+  
+## v0.24.2 (2022-05-09)
 
 This release supports -
 
