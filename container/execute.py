@@ -33,13 +33,13 @@ params_var = "PAPERMILL_PARAMS"
 
 ## Local testing -
 PAPERMILL_PARAMS = """{
-                "dataset_id": "the-sdsds",
+                "dataset_id": "the-office-series",
                 "n_clusters": 10,
                 "vector_fields": [
                     "review_a_vector_"
                 ],
                 "cutoff": 0.75,
-                "clusteringType": "community-detection",
+                "clusteringType": "",
                 "region": "us-east-1",
                 "project": "452d7499c071ab48e4e5",
                 "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
@@ -62,8 +62,6 @@ ROOT_PATH = Path(__file__).parent
 #         processors=processors,
 #     )
 # logger = structlog.get_logger()
-# from json_logger import Logger
-# logger = Logger()
 
 
 def run_notebook():
@@ -177,21 +175,16 @@ def run_notebook():
         # import logging
         # logging.FileHandler(FPATH)
 
-        # with open(FPATH, "r") as f:
-        #     print(f"Reading failure message to file...")
-        #     print(json.loads(f.read()))
-
         # print(type(logging.exception( e, exc_info=e, filename=FPATH)))
-
-        # json.dump(open(ROOT_PATH / "error.json" , json.loads(logging.exception( e, exc_info=e))))
-        # Sagemaker processing
 
         # Dump as valid json
         err = trc_data[-2]
-
-        err_s = err.split(": ")
-        err_dict = {"error": err_s[0], "message": json.loads(err_s[1])}
-        err = json.dumps(err_dict)
+        try:
+            err_s = err.split(": ")
+            err_dict = {"error": err_s[0], **json.loads(err_s[1])}
+            err = json.dumps(err_dict)
+        except Exception as e:
+            print(f"Error loading error message as dixt: {e}")
 
         with open(FPATH, "w") as f:
             print(f"Writing failure message to file...")

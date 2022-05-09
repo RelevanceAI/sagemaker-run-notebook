@@ -11,4 +11,6 @@ papermill==2.3.4
 # matplotlib
 RelevanceAI[notebook]==2.1.6
 vectorhub[sentence-transformers]>=1.8.3
+vectorhub[encoders-image-tfhub]>=1.8.3
+vectorhub[clip]>=1.8.3
 sentence-transformers==2.2.0

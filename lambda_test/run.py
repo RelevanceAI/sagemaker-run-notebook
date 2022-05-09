@@ -31,23 +31,37 @@ TIMESTAMP = int(datetime.now().timestamp())
 JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 
 
+# event = {
+#     "body": {
+#         "JOB_ID": f"workflow-dev-core-vectorize-fail-pls-{TIMESTAMP}",
+#         "JOB_TYPE": "sagemaker_processing",
+#         "TIMESTAMP": TIMESTAMP,
+#         "WORKFLOW_NAME": "core-vectorize",
+#         "DEBUG": True,
+#         "CONFIG": {
+#             "dataset_id": "1341241234",
+#             "n_clusters": 10,
+#             "vector_fields": ["review_a_vector_"],
+#             "cutoff": 0.75,
+#             "clusteringType": "community-detection",
+#             "authorizationToken": f"{os.environ["SUPPORT_ACTIVATION_TOKEN"]}",
+#         },
+#     }
+# }
+
 event = {
     "body": {
-        "JOB_ID": f"workflow-dev-core-vectorize-fail-pls-{TIMESTAMP}",
+        "JOB_ID": f"workflow-stg-core-test-vectorize-{TIMESTAMP}",
         "JOB_TYPE": "sagemaker_processing",
         "TIMESTAMP": TIMESTAMP,
         "WORKFLOW_NAME": "core-vectorize",
         "DEBUG": True,
         "CONFIG": {
-            "dataset_id": "1341241234",
-            "n_clusters": 10,
-            "vector_fields": ["review_a_vector_"],
-            "cutoff": 0.75,
-            "clusteringType": "community-detection",
-            "region": "us-east-1",
-            "project": "452d7499c071ab48e4e5",
-            "api_key": "WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw",
-            "authorizationToken": "452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2",
+            "dataset_id": "test-vectorize",
+            "model_id": "",
+            "encode_type": "clip",
+            "fields": ["product_image"],
+            "authorizationToken": f'{os.environ["TEST_REGINES_TOKEN"]}',
         },
     }
 }
