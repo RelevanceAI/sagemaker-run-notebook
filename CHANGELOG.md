@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.24.2 (2022-05--0)
+
+This release supports -
+
+- Vectorizing over all models (inc clip/bit etc) - adding requried deps to run container
 ## v0.24.1 (2022-05-06)
 
 This release supports -
