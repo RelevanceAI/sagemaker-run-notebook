@@ -109,6 +109,7 @@ def check_sm_job_status(job_id: str, timestamp: str):
     #     MaxResults=JOB_LIMIT,
     #     # StatusEquals='InProgress'
     # )["ProcessingJobSummaries"]
+    print(job_id)
     try:
         job = sm_client.describe_processing_job(ProcessingJobName=str(job_id))
     except Exception as e:

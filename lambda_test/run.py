@@ -49,18 +49,34 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 #     }
 # }
 
+# event = {
+#     "body": {
+#         "JOB_ID": f"workflow-dev-mpnet-test-vectorize-{TIMESTAMP}",
+#         "JOB_TYPE": "sagemaker_processing",
+#         "TIMESTAMP": TIMESTAMP,
+#         "WORKFLOW_NAME": "core-vectorize",
+#         "DEBUG": True,
+#         "CONFIG": {
+#             "dataset_id": "test-vectorize",
+#             "model_id": "clip",
+#             "encode_type": "image",
+#             "fields": ["product_image"],
+#             "authorizationToken": f'{os.environ["SUPPORT_ACTIVATION_TOKEN"]}',
+#         },
+#     }
+# }
+
 event = {
     "body": {
-        "JOB_ID": f"workflow-stg-mpnet-test-vectorize-{TIMESTAMP}",
+        "JOB_ID": f"workflow-stg-core-dr-van-gogh-{TIMESTAMP}",
         "JOB_TYPE": "sagemaker_processing",
         "TIMESTAMP": TIMESTAMP,
         "WORKFLOW_NAME": "core-vectorize",
         "DEBUG": True,
         "CONFIG": {
-            "dataset_id": "test-vectorize",
-            "model_id": "mpnet",
-            "encode_type": "text",
-            "fields": ["product_title"],
+            "dataset_id": "van-gogh",
+            "n_dims": 3,
+            "vector_fields": ["link_clip_vector_"],
             "authorizationToken": f'{os.environ["TEST_REGINES_TOKEN"]}',
         },
     }
@@ -126,6 +142,20 @@ def handler(event, context={}):
         }
         return return_response(response_code=500, body=body)
 
+    if WORKFLOW_NAME not in [
+        "core-vectorize",
+        "core-cluster",
+        "core-dr",
+        "core-subclustering",
+    ]:
+        body = {
+            **{
+                "message": f"Workflow {WORKFLOW_NAME} not found or is not valid. Only core workflows supported atm, 'core-vectorize', 'core-cluster', 'core-dr', 'core-subclustering'"
+            },
+            **body,
+        }
+        return return_response(response_code=500, body=body)
+
     print(f"WORKFLOW_NAME: {WORKFLOW_NAME}")
     # print(f"EXECUTION_ROLE: {EXECUTION_ROLE}")
 
@@ -144,7 +174,7 @@ def handler(event, context={}):
             ## To overcome
             print(NOTEBOOK_PATH)
             sm_job = run.invoke(
-                input_path=NOTEBOOK_PATH,
+                notebook=NOTEBOOK_PATH,
                 stage=stage,
                 image=f"sagemaker-run-notebook-{stage}",
                 role=EXECUTION_ROLE,

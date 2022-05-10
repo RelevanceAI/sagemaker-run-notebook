@@ -155,6 +155,8 @@ def run_notebook():
         #     if l == "":
         #         break
 
+        print(error_message)
+
         if not os.getenv(params_var):
             FPATH = ROOT_PATH / "error"  ## Local
         else:
@@ -175,7 +177,11 @@ def run_notebook():
         err = trc_data[-2]
         try:
             err_s = err.split(": ")
-            err_dict = {"error": err_s[0], **json.loads(err_s[1])}
+            try:
+                message = json.loads(err_s[1])  ## Load if dict
+            except:
+                message = err_s[1]
+            err_dict = {"error": err_s[0], **{"message": message}}
             err = json.dumps(err_dict)
         except Exception as e:
             print(f"Error loading error message as dict: {e}")
@@ -184,9 +190,12 @@ def run_notebook():
             print(f"Writing failure message to file...")
             f.write(err)
 
-        with open(FPATH, "r") as f:
-            print(f"Reading failure message to file...")
-            print(json.load(f))
+        try:
+            with open(FPATH, "r") as f:
+                print(f"Reading failure message to file...")
+                print(json.load(f))
+        except Exception as e:
+            print(f"Error reading failure message as dict {e} ...")
 
         # A non-zero exit code causes the training job to be marked as Failed logger.
         print(f"Exiting Sagemaker job ...")

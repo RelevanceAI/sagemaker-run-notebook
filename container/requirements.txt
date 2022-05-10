@@ -9,7 +9,7 @@ ipykernel
 papermill==2.3.4
 # scikit-learn
 matplotlib
-RelevanceAI[notebook]==2.1.6
+RelevanceAI[notebook, umap]==2.1.6
 vectorhub[sentence-transformers]>=1.8.3
 vectorhub[encoders-image-tfhub]>=1.8.3
 vectorhub[clip]>=1.8.3
