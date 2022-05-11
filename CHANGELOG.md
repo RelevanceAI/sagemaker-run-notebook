@@ -1,5 +1,12 @@
 # Changelog
 
+
+## v0.24.4 (2022-05-11)
+
+This release supports -
+
+- Fixing missing deps for DR (umap)
+
 ## v0.24.3 (2022-05-09)
 
 This release supports -
