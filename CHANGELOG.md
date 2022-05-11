@@ -1,6 +1,32 @@
 # Changelog
 
 
+## v0.25.0 (2022-05-11)
+
+This release supports -
+
+- Ability to deploy sagemaker-run-notebook infra stack to different regions (currently just ap-southeast-1/us-east-1) 
+
+```zsh
+❯ make create-infra STAGE=dev REGION=us-east-1 
+❯ make update-infra STAGE=dev REGION=us-east-1  
+```
+
+- Ability to deploy Processing Jobs to different regions from `run.invoke` and `run.schedule` etc
+
+
+```python
+sm_job = run.invoke(
+                notebook=NOTEBOOK_PATH,
+                stage=stage,
+                region=region,
+                image=f"sagemaker-run-notebook-{stage}",
+                role=EXECUTION_ROLE,
+                parameters={**{"JOB_ID": JOB_ID}, **params},
+                upload_parameters=True,
+            )
+```
+
 ## v0.24.4 (2022-05-11)
 
 This release supports -

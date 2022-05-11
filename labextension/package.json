@@ -1,9 +1,9 @@
 {
   "name": "sagemaker_run_notebook",
 <<<<<<< Updated upstream
-  "version": "0.24.4",
+  "version": "0.25.0",
 =======
-  "version": "0.24.4",
+  "version": "0.25.0",
 >>>>>>> Stashed changes
   "description": "Execute notebooks on a schedule in SageMaker",
   "keywords": [
