@@ -23,10 +23,12 @@ cfn_template_file = os.path.join(
 )
 
 
-def ensure_session(session=None):
+def ensure_session(session=None, region: Literal["ap-southeast-2", "us-east-1"] = None):
     """If session is None, create a default session and return it. Otherwise return the session passed in"""
     if session is None:
-        session = boto3.session.Session()
+        if region is None:
+            region = os.environ["AWS_DEFAULT_REGION"]
+        session = boto3.session.Session(region_name=region)
     return session
 
 
@@ -50,11 +52,15 @@ def wait_for_infrastructure(stack_id, progress=True, sleep_time=10, session=None
 
 
 def create_infrastructure(
-    session=None, update=False, wait=True, stage: Literal["dev", "stg", "prd"] = "dev"
+    session=None,
+    update=False,
+    wait=True,
+    stage: Literal["dev", "stg", "prd"] = "dev",
+    region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
 ):
     with open(cfn_template_file, mode="r") as f:
         cfn_template = f.read()
-    session = ensure_session(session)
+    session = ensure_session(session, region=region)
     client = session.client("cloudformation")
 
     try:

@@ -14,6 +14,7 @@
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
 STAGE ?= stg ## dev, stg, prd
+AWS_DEFAULT_REGION ?= ap-southeast-2
 
 release: install test docs
 	make artifacts
@@ -41,7 +42,7 @@ clean-python:
 cfntemplate: sagemaker_run_notebook/cloudformation.yml
 
 create-infra:
-	run-notebook create-infrastructure --stage $(STAGE)
+	run-notebook create-infrastructure --stage $(STAGE) --region $(REGION)
 
 sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
@@ -51,7 +52,7 @@ build-and-push:
 	cd container && ./build_and_push.sh sagemaker-run-notebook-$(STAGE)
 
 update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
-	run-notebook create-infrastructure --update --stage $(STAGE)
+	run-notebook create-infrastructure --update --stage $(STAGE) --region $(REGION)
 
 artifacts: clean cfntemplate
 	python setup.py sdist --dist-dir build/dist

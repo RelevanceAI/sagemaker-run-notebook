@@ -162,7 +162,6 @@ def run_notebook():
         else:
             FPATH = "/opt/ml/output/message"
 
-        #
         # Outputing log to S3
         # logger = configure_traceback_json_logger(filename=FPATH)
         # logger.exception( e, exc_info=e)

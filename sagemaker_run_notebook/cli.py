@@ -257,7 +257,9 @@ def list_rules(args):
 
 
 def create_infrastructure(args):
-    infra.create_infrastructure(update=args.update, stage=args.stage)
+    infra.create_infrastructure(
+        update=args.update, stage=args.stage, region=args.region
+    )
 
 
 def create_container(args):
@@ -483,7 +485,16 @@ def cli_argparser():
         action="store_true",
     )
     createinfra_parser.add_argument(
-        "--stage", help="Stage Name - [dev, stg, prd]", default="dev"
+        "--stage",
+        help="Stage Name - [dev, stg, prd]",
+        default="dev",
+        choices=["dev", "stg", "prd"],
+    )
+    createinfra_parser.add_argument(
+        "--region",
+        help="AWS Region Name ",
+        default="ap-southeast-2",
+        choices=["ap-southeast-2", "us-east-1"],
     )
     createinfra_parser.set_defaults(func=create_infrastructure)
 
