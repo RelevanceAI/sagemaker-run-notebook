@@ -26,7 +26,7 @@ import uuid
 import logging
 
 # SM client
-sm_client = boto3.client("sagemaker")
+
 JOB_LIMIT = 100
 ###################################################w############################
 #   Application object                                                        #
@@ -35,31 +35,35 @@ JOB_LIMIT = 100
 FILE_DIR = Path(__file__).parent
 EVENT_PATH = f"{FILE_DIR}/event.json"
 
+sm_client = boto3.client("sagemaker")
+
 
 def handler(event, context={}):
     body = event["body"]
-    config = body["CONFIG"]
+    params = body["params"]
+    region = event["region"]
 
-    logging_level = logging.DEBUG if config.get("DEBUG") else logging.INFO
+    global sm_client
+    sm_client = boto3.client("sagemaker", region_name=region)
+
+    logging_level = logging.DEBUG if params.get("DEBUG") else logging.INFO
     # logging.setLevel(level=logging_level)
     logging.basicConfig(level=logging_level)
 
     logging.info(json.dumps(body, indent=2))
 
-    if body["JOB_TYPE"] == "sagemaker_processing":
+    if body["compute_type"] == "sagemaker_processing":
         ## ProcessingName Cleaning
-        JOB_ID_L = body["JOB_ID"].replace("_", "-").split("-")
+        JOB_ID_L = body["job_id"].replace("_", "-").split("-")
         WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
         JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
         print(JOB_ID)
 
-        job_status, job_message = check_sm_job_status(
-            job_id=JOB_ID, timestamp=body["TIMESTAMP"]
-        )
+        job_status, job_message = check_sm_job_status(job_id=JOB_ID)
         if not job_status:
             response_code = 500
             job_message = {
-                "message": f"Job Id {body['JOB_ID']} does not exist in Sagemaker Processing jobs."
+                "message": f"Job Id {body['job_id']} does not exist in Sagemaker Processing jobs."
             }
             body = {**job_message, **body}
         if job_status == "Failed":
@@ -83,9 +87,9 @@ def handler(event, context={}):
         # },
         "body": body,
     }
-    if body["CONFIG"].get("authorizationToken"):
-        body["CONFIG"]["authorizationToken"] = "*" * len(
-            body["CONFIG"]["authorizationToken"]
+    if body["params"].get("authorizationToken"):
+        body["params"]["authorizationToken"] = "*" * len(
+            body["params"]["authorizationToken"]
         )
     logging.info(json.dumps(response, indent=2))
 
@@ -99,7 +103,7 @@ def days_hours_minutes_seconds(td):
     return td.days, hours, minutes, round(seconds, 2)
 
 
-def check_sm_job_status(job_id: str, timestamp: str):
+def check_sm_job_status(job_id: str):
     # aest = dateutil.tz.gettz("Australia/Sydney")
     # dt_last_half_hour = datetime.now(timezone.utc) - timedelta(minutes=30)
 

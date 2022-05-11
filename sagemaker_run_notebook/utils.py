@@ -12,7 +12,7 @@
 # language governing permissions and limitations under the License.
 
 import re
-
+from typing_extensions import Literal
 import boto3
 import botocore
 
@@ -168,8 +168,10 @@ def get_execution_role(session):
     raise ValueError(message.format(arn))
 
 
-def ensure_session(session=None):
+def ensure_session(session=None, region: Literal["ap-southeast-2", "us-east-1"] = None):
     """If session is None, create a default session and return it. Otherwise return the session passed in"""
     if session is None:
-        session = boto3.session.Session()
+        if region is None:
+            region = os.environ["AWS_DEFAULT_REGION"]
+        session = boto3.session.Session(region_name=region)
     return session

@@ -13,8 +13,8 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-STAGE ?= stg ## dev, stg, prd
-AWS_DEFAULT_REGION ?= ap-southeast-2
+STAGE ?= dev ## dev, stg, prd
+REGION ?= ap-southeast-2 ## ap-southeast-2, us-east-1
 
 release: install test docs
 	make artifacts

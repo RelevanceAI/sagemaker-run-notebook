@@ -38,7 +38,7 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 #         "TIMESTAMP": TIMESTAMP,
 #         "WORKFLOW_NAME": "core-vectorize",
 #         "DEBUG": True,
-#         "CONFIG": {
+#         "params": {
 #             "dataset_id": "1341241234",
 #             "n_clusters": 10,
 #             "vector_fields": ["review_a_vector_"],
@@ -56,7 +56,7 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 #         "TIMESTAMP": TIMESTAMP,
 #         "WORKFLOW_NAME": "core-vectorize",
 #         "DEBUG": True,
-#         "CONFIG": {
+#         "params": {
 #             "dataset_id": "test-vectorize",
 #             "model_id": "clip",
 #             "encode_type": "image",
@@ -68,16 +68,17 @@ JOB_ID = f"workflow-cluster-{TIMESTAMP}"
 
 event = {
     "body": {
-        "JOB_ID": f"workflow-stg-core-dr-van-gogh-{TIMESTAMP}",
-        "JOB_TYPE": "sagemaker_processing",
-        "TIMESTAMP": TIMESTAMP,
-        "WORKFLOW_NAME": "core-vectorize",
-        "DEBUG": True,
-        "CONFIG": {
-            "dataset_id": "van-gogh",
-            "n_dims": 3,
-            "vector_fields": ["link_clip_vector_"],
-            "authorizationToken": f'{os.environ["TEST_REGINES_TOKEN"]}',
+        "job_type": "workflow",
+        "compute_type": "sagemaker_processing",
+        "compute_region": "ap-southeast-2",
+        "workflow_name": "core-cluster",
+        "dataset_id": "the-office-series",
+        "authorizationToken": f'{os.environ["SUPPORT_ACTIVATION_TOKEN"]}',
+        "params": {
+            "n_clusters": 10,
+            "vector_fields": ["episode_title_mpnet_vector_"],
+            "cutoff": 0.75,
+            "clusteringType": "community-detection",
         },
     }
 }
@@ -93,11 +94,11 @@ WORKFLOW_S3_URIS = {}
 
 
 def handler(event, context={}):
-
     # body = json.loads(event["body"])
     body = event["body"]
     stage = event["stage"]
-    config = body["CONFIG"]
+    region = event["region"]
+    params = body["params"]
 
     NOTEBOOK_EXECUTION_ROLE = os.environ[
         "NOTEBOOK_EXECUTION_ROLE"
@@ -119,8 +120,8 @@ def handler(event, context={}):
     SUPPORT_ACTIVATION_TOKEN = os.environ["SUPPORT_ACTIVATION_TOKEN"]
 
     ## If not authToken in payload, load support
-    if not config.get("authorizationToken"):
-        config["authorizationToken"] = SUPPORT_ACTIVATION_TOKEN
+    if not params.get("authorizationToken"):
+        params["authorizationToken"] = SUPPORT_ACTIVATION_TOKEN
 
     global WORKFLOW_S3_URIS
     if not WORKFLOW_S3_URIS:
@@ -133,7 +134,7 @@ def handler(event, context={}):
             else:
                 WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]["dev"]
 
-    WORKFLOW_NAME = body.get("WORKFLOW_NAME")
+    WORKFLOW_NAME = body.get("workflow_name")
     NOTEBOOK_PATH = WORKFLOW_S3_URIS.get(WORKFLOW_NAME)
     if not WORKFLOW_NAME or not NOTEBOOK_PATH:
         body = {
@@ -160,11 +161,15 @@ def handler(event, context={}):
     # print(f"EXECUTION_ROLE: {EXECUTION_ROLE}")
 
     try:
-        if body["JOB_TYPE"] == "sagemaker_processing":
+        if body["compute_type"] == "sagemaker_processing":
             EXECUTION_ROLE = os.environ["NOTEBOOK_EXECUTION_ROLE"]
 
             ## ProcessingName Cleaning
-            JOB_ID_L = body["JOB_ID"].replace("_", "-").split("-")
+            dataset_id = body["dataset_id"]
+            body[
+                "job_id"
+            ] = f"workflow-{stage}-{dataset_id}-{int(datetime.now().timestamp())}"
+            JOB_ID_L = body["job_id"].replace("_", "-").split("-")
             WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
             JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
 
@@ -176,9 +181,10 @@ def handler(event, context={}):
             sm_job = run.invoke(
                 notebook=NOTEBOOK_PATH,
                 stage=stage,
+                region=region,
                 image=f"sagemaker-run-notebook-{stage}",
                 role=EXECUTION_ROLE,
-                parameters={**{"JOB_ID": JOB_ID}, **config},
+                parameters={**{"JOB_ID": JOB_ID}, **params},
                 upload_parameters=True,
             )
             if sm_job:
@@ -200,9 +206,9 @@ def handler(event, context={}):
         body = {**{"message": str(e)}, **body}
 
     ## Masking creds
-    # if body["CONFIG"].get("authorizationToken"):
-    #     body["CONFIG"]["authorizationToken"] = "*" * len(
-    #         body["CONFIG"]["authorizationToken"]
+    # if body["params"].get("authorizationToken"):
+    #     body["params"]["authorizationToken"] = "*" * len(
+    #         body["params"]["authorizationToken"]
     #     )
 
     return return_response(response_code=response_code, body=body)
@@ -226,6 +232,7 @@ def return_response(response_code: int, body: dict) -> dict:
 def main(args):
     global event
     event["stage"] = args.stage
+    event["region"] = args.region
     if not args.poll:
         handler(event)
         json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
@@ -233,6 +240,7 @@ def main(args):
     event = json.loads(open(EVENT_PATH).read())
     if args.job_id:
         event["body"]["JOB_ID"] = args.job_id.strip()
+
     poll_handler(event)
 
 
@@ -244,7 +252,13 @@ if __name__ == "__main__":
         default="dev",
         type=str,
         choices={"dev", "stg", "prd"},
-        help="Run debug mode",
+        help="Stage Name",
+    )
+    parser.add_argument(
+        "--region",
+        help="AWS Region Name ",
+        default="ap-southeast-2",
+        choices=["ap-southeast-2", "us-east-1"],
     )
     parser.add_argument(
         "-p",

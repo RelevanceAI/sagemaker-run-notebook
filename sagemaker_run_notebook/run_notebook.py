@@ -301,6 +301,7 @@ def run_notebook(
     notebook,
     parameters={},
     stage: Literal["dev", "stg", "prd"] = "dev",
+    region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     role=None,
     instance_type="ml.m5.large",
     output_prefix=None,
@@ -324,7 +325,7 @@ def run_notebook(
         A tuple with the processing job name, the job status, the failure reason (or None) and the the path to
         the result notebook. The output notebook name is formed by adding a timestamp to the original notebook name.
     """
-    session = ensure_session(session)
+    session = ensure_session(session, region)
     if output_prefix is None:
         output_prefix = get_output_prefix()
 
@@ -630,10 +631,12 @@ def download_all(lis, output=".", session=None):
     return [download_notebook(job, output, session) for job in lis]
 
 
-def ensure_session(session=None):
+def ensure_session(session=None, region: Literal["ap-southeast-2", "us-east-1"] = None):
     """If session is None, create a default session and return it. Otherwise return the session passed in"""
     if session is None:
-        session = boto3.session.Session()
+        if region is None:
+            region = os.environ["AWS_DEFAULT_REGION"]
+        session = boto3.session.Session(region_name=region)
     return session
 
 
@@ -807,7 +810,7 @@ def invoke(
     Returns:
         The name of the processing job created to run the notebook.
     """
-    session = ensure_session(session)
+    session = ensure_session(session, region)
 
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
@@ -969,7 +972,7 @@ def schedule(
     if len(kwargs) == 0:
         raise Exception("Must specify one of schedule or event_pattern")
 
-    session = ensure_session(session)
+    session = ensure_session(session, region)
 
     # prepend a common prefix to the rule so it's easy to find notebook rules
     prefixed_rule_name = RULE_PREFIX + rule_name
@@ -1035,7 +1038,11 @@ def schedule(
     )
 
 
-def unschedule(rule_name, session=None):
+def unschedule(
+    rule_name,
+    session=None,
+    region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
+):
     """Delete an existing notebook schedule rule.
 
     Args:
@@ -1044,7 +1051,7 @@ def unschedule(rule_name, session=None):
     """
     prefixed_rule_name = RULE_PREFIX + rule_name
 
-    session = ensure_session(session)
+    session = ensure_session(session, region)
     events = boto3.client("events")
     lambda_ = session.client("lambda")
 
@@ -1093,7 +1100,12 @@ def describe_schedules(n=0, rule_prefix=None, session=None):
                     return
 
 
-def describe_schedule(rule_name, rule_item=None, session=None):
+def describe_schedule(
+    rule_name,
+    rule_item=None,
+    session=None,
+    region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
+):
     """Describe a notebook execution schedule.
 
     Args:
@@ -1116,7 +1128,7 @@ def describe_schedule(rule_name, rule_item=None, session=None):
         'output_prefix': 's3://sagemaker-us-west-2-123456789012/papermill_output'}
     """
     rule_name = RULE_PREFIX + rule_name
-    session = ensure_session(session)
+    session = ensure_session(session, region)
     ev = session.client("events")
 
     if not rule_item:
