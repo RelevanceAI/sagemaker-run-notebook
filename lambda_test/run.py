@@ -94,6 +94,7 @@ WORKFLOW_S3_URIS = {}
 
 
 def handler(event, context={}):
+    start = time.time()
     # body = json.loads(event["body"])
     body = event["body"]
     stage = event["stage"]
@@ -195,10 +196,10 @@ def handler(event, context={}):
                 }
 
         # print("Wait for job to complete ...")
-        # start = time.time()
+
         # run.wait_for_complete(sm_job)
-        # end = time.time()
-        # print(f"{WORKFLOW_NAME} workflow took {end-start:.4}s ... ")
+        end = time.time()
+        print(f"{WORKFLOW_NAME} workflow took {end-start:.4}s ... ")
 
     except Exception as e:
         print(f"Error invoking job. {e}")

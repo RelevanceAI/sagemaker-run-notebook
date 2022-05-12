@@ -50,20 +50,18 @@ then
     exit 255
 fi
 
-DATE=$(date +%Y%m%d%H%M%S)
 
-TAG=${2:-$DATE}
 
 
 # Get the region defined in the current configuration (default to ap-southeast-2 if none defined)
 AWS_REGION=$(aws configure get region)
-AWS_REGION=${AWS_REGION:-ap-southeast-2}
+AWS_REGION=${2:-${AWS_REGION}}
 echo "Region ${AWS_REGION}"
 
-AWS_PROFILE=${3:-'relevanceai-sandbox'}
-
-
 DATE=$(date +%Y%m%d%H%M%S)
+TAG=${3:-$DATE}
+
+AWS_PROFILE=${4:-'relevanceai-sandbox'}
 
 ECR_REPOSITORY_URI="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 IMAGE_URI="${ECR_REPOSITORY_URI}/${IMAGE_NAME}"

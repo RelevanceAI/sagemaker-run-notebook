@@ -15,6 +15,7 @@
 
 STAGE ?= dev ## dev, stg, prd
 REGION ?= ap-southeast-2 ## ap-southeast-2, us-east-1
+TAG ?= $(date +%Y%m%d%H%M%S)
 
 release: install test docs
 	make artifacts
@@ -49,7 +50,7 @@ sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
 
 build-and-push:
-	cd container && ./build_and_push.sh sagemaker-run-notebook-$(STAGE)
+	cd container && ./build_and_push.sh sagemaker-run-notebook-$(STAGE) $(REGION) $(TAG) 
 
 update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
 	run-notebook create-infrastructure --update --stage $(STAGE) --region $(REGION)
