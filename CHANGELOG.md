@@ -1,6 +1,14 @@
 # Changelog
 
 
+
+## v0.25.1 (2022-05-13)
+
+This release supports -
+
+- Fixing regional deploy on Sagemaker Processing execution container image
+
+
 ## v0.25.0 (2022-05-11)
 
 This release supports -
