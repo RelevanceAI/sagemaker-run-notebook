@@ -120,11 +120,13 @@ def local_notebook(args):
     account = session.client("sts").get_caller_identity()["Account"]
     image = args.image
     if not image:
-        image = "sagemaker-run-notebook"
+        if not environment:
+            environment = "sandbox"
+        image = f"sagemaker-run-notebook"
     if "/" not in image:
         image = f"{account}.dkr.ecr.{region}.amazonaws.com/{image}"
     if ":" not in image:
-        image = image + ":latest"
+        image = image + f":{environment}-latest"
 
     base_cmd = ["docker", "run", "--rm", "-td" if args.no_wait else "-ti"]
     mnts = [
@@ -486,9 +488,9 @@ def cli_argparser():
     )
     createinfra_parser.add_argument(
         "--environment",
-        help="Stage Name - [development, production]",
-        default="development",
-        choices=["development", "production"],
+        help="Stage Name - [sandbox, development, production]",
+        default="sandbox",
+        choices=["sandbox", "development", "production"],
     )
     createinfra_parser.add_argument(
         "--region",

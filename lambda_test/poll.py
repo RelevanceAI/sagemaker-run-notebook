@@ -55,7 +55,7 @@ def handler(event, context={}):
     if body["compute_type"] == "sagemaker_processing":
         ## ProcessingName Cleaning
         JOB_ID_L = body["job_id"].replace("_", "-").split("-")
-        WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
+        WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[2:-1])[:30]
         JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
         print(JOB_ID)
 

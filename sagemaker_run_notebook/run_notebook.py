@@ -150,10 +150,9 @@ def execute_notebook(
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
-        if environment not in image:
-            image = f"{image}-{environment}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
-
+        if ":" not in image:
+            image = image + f":{environment}-latest"
     if notebook == None:
         notebook = input_path
 
@@ -161,7 +160,7 @@ def execute_notebook(
     nb_name, nb_ext = os.path.splitext(base)
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 
-    job_name = parameters["JOB_ID"]
+    job_name = parameters["job_id"]
 
     input_directory = "/opt/ml/processing/input/"
     local_input = input_directory + os.path.basename(input_path)
@@ -300,7 +299,7 @@ def run_notebook(
     image,
     notebook,
     parameters={},
-    environment: Literal["development", "production"] = "production",
+    environment: Literal["sandbox", "development", "production"] = "sandbox",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     role=None,
     instance_type="ml.m5.large",
@@ -331,8 +330,6 @@ def run_notebook(
 
     s3path = upload_notebook(notebook, parameters, session)
 
-    if environment not in image:
-        image = f"{image}-{environment}"
     job_name = execute_notebook(
         image=image,
         input_path=s3path,
@@ -649,7 +646,7 @@ lambda_description = (
 
 def create_lambda(
     role=None,
-    environment: Literal["development", "production"] = "production",
+    environment: Literal["sandbox", "development", "production"] = "sandbox",
     session=None,
 ):
     session = ensure_session(session)
@@ -766,7 +763,7 @@ class InvokeException(Exception):
 def invoke(
     notebook=None,
     image="sagemaker-run-notebook",
-    environment: Literal["development", "production"] = "production",
+    environment: Literal["sandbox", "development", "production"] = "sandbox",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     input_path=None,
     output_prefix=None,
@@ -819,9 +816,10 @@ def invoke(
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
-        if environment not in image:
-            image = f"{image}-{environment}"
-        image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
+
+        image = "{}.dkr.ecr.{}.amazonaws.com/{}".format(account, region, image)
+        if ":" not in image:
+            image = image + ":latest"
 
     if not role:
         try:
@@ -857,13 +855,13 @@ def invoke(
             notebook = os.path.basename(notebook)
     # else:
     #     notebook = input_path
-    notebook_name = f"{parameters['JOB_ID']}.ipynb"
-    params_name = f"{parameters['JOB_ID']}.json"
+    notebook_name = f"{parameters['job_id']}.ipynb"
+    params_name = f"{parameters['job_id']}.json"
 
     if upload_parameters:
         parameters = {
             "S3_PATH": upload_json(parameters, params_name, session),
-            "JOB_ID": parameters["JOB_ID"],
+            "job_id": parameters["job_id"],
         }
 
     if input_path is None:
@@ -874,9 +872,6 @@ def invoke(
     extra_args = {}
     for f in extra_fns:
         extra_args = f(extra_args)
-
-    if environment not in image:
-        image = f"{image}-{environment}"
 
     args = {
         "image": image,
@@ -914,7 +909,7 @@ def schedule(
     schedule=None,
     event_pattern=None,
     image="sagemaker-run-notebook",
-    environment: Literal["development", "production"] = "production",
+    environment: Literal["sandbox", "development", "production"] = "sandbox",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     input_path=None,
     output_prefix=None,
@@ -984,10 +979,9 @@ def schedule(
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
-        if environment not in image:
-            image = f"{image}-{environment}"
-        image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
-
+        image = "{}.dkr.ecr.{}.amazonaws.com/{}".format(account, region, image)
+        if ":" not in image:
+            image = image + f":{environment}-latest"
     if not role:
         try:
             role = get_execution_role(session)

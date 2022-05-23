@@ -17,7 +17,6 @@ function usage {
 }
 
 
-
 if [ "$1" == "--base" ]
 then
     base=$2
@@ -50,18 +49,19 @@ then
     exit 255
 fi
 
-
-
+ENVIRONMENT=${2:-'sandbox'}
+echo "Environment ${ENVIRONMENT}"
 
 # Get the region defined in the current configuration (default to ap-southeast-2 if none defined)
 AWS_REGION=$(aws configure get region)
-AWS_REGION=${2:-${AWS_REGION}}
+AWS_REGION=${3:-${AWS_REGION}}
 echo "Region ${AWS_REGION}"
 
-DATE=$(date +%Y%m%d%H%M%S)
-TAG=${3:-$DATE}
-
 AWS_PROFILE=${4:-'relevance-sandbox.AdministratorAccess'}
+
+DATE=$(date +%Y%m%d%H%M%S)
+TAG=${5:-$DATE}
+
 
 ECR_REPOSITORY_URI="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 IMAGE_URI="${ECR_REPOSITORY_URI}/${IMAGE_NAME}"
@@ -88,14 +88,14 @@ fi
 
 docker build -t ${IMAGE_NAME} --build-arg BASE_IMAGE=${base} .
 
-echo "Tagging IMAGE_NAME ${IMAGE_URI}:${TAG}"
-echo "Tagging IMAGE_NAME ${IMAGE_URI}:latest"
-docker tag ${IMAGE_NAME} "${IMAGE_URI}:${TAG}"
-docker tag ${IMAGE_NAME} "${IMAGE_URI}:latest"
+echo "Tagging IMAGE_NAME ${IMAGE_URI}:${ENVIRONMENT}-${TAG}"
+echo "Tagging IMAGE_NAME ${IMAGE_URI}:${ENVIRONMENT}-latest"
+docker tag ${IMAGE_NAME} "${IMAGE_URI}:${ENVIRONMENT}-${TAG}"
+docker tag ${IMAGE_NAME} "${IMAGE_URI}:${ENVIRONMENT}-latest"
 
 echo "Pushing IMAGE_NAME to ECR ${IMAGE_URI}"
-docker push "${IMAGE_URI}:${TAG}"
-docker push "${IMAGE_URI}:latest"
+docker push "${IMAGE_URI}:${ENVIRONMENT}-${TAG}"
+docker push "${IMAGE_URI}:${ENVIRONMENT}-latest"
 # docker tag ${IMAGE_NAME} ${fullname}
 
 # docker push ${fullname}

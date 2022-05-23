@@ -24,12 +24,12 @@ def execute_notebook(
     account = session.client("sts").get_caller_identity()["Account"]
     if not image:
         if not environment:
-            environment = "development"
-        image = f"sagemaker-run-notebook-{environment}"
+            environment = "sandbox"
+        image = f"sagemaker-run-notebook"
     if "/" not in image:
         image = f"{account}.dkr.ecr.{region}.amazonaws.com/{image}"
     if ":" not in image:
-        image = image + ":latest"
+        image = image + f":{environment}-latest"
 
     if not role:
         role = f"BasicExecuteNotebookRole-{region}"
@@ -51,7 +51,7 @@ def execute_notebook(
     #     + "-"
     #     + timestamp
     # )
-    job_name = parameters["JOB_ID"]
+    job_name = parameters["job_id"]
     input_directory = "/opt/ml/processing/input/"
     local_input = input_directory + os.path.basename(input_path)
     result = "{}-{}{}".format(nb_name, timestamp, nb_ext)
@@ -104,16 +104,16 @@ def execute_notebook(
     if extra_args is not None:
         api_args = merge_extra(api_args, extra_args)
 
-    parameters.pop("JOB_ID", None)
+    parameters.pop("job_id", None)
 
     api_args["Environment"]["PAPERMILL_INPUT"] = local_input
     api_args["Environment"]["PAPERMILL_OUTPUT"] = local_output + result
-    # if os.environ.get("AWS_DEFAULT_REGION") != None:
-    #     api_args["Environment"]["AWS_DEFAULT_REGION"] = os.environ["AWS_DEFAULT_REGION"]
+    if os.environ.get("AWS_DEFAULT_REGION") != None:
+        api_args["Environment"]["AWS_DEFAULT_REGION"] = os.environ["AWS_DEFAULT_REGION"]
     api_args["Environment"]["PAPERMILL_PARAMS"] = json.dumps(parameters)
-    # api_args["Environment"]["PAPERMILL_NOTEBOOK_NAME"] = base
-    # if rule_name is not None:
-    #     api_args["Environment"]["AWS_EVENTBRIDGE_RULE"] = rule_name
+    api_args["Environment"]["PAPERMILL_NOTEBOOK_NAME"] = base
+    if rule_name is not None:
+        api_args["Environment"]["AWS_EVENTBRIDGE_RULE"] = rule_name
 
     client = boto3.client("sagemaker")
     result = client.create_processing_job(**api_args)
@@ -148,7 +148,7 @@ def merge_extra(orig, extra):
     return result
 
 
-def ensure_session(session=None, region: Literal["ap-southeast-2", "us-east-1"] = None):
+def ensure_session(session=None, region: str = None):
     """If session is None, create a default session and return it. Otherwise return the session passed in"""
     if session is None:
         if region is None:

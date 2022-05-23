@@ -55,7 +55,7 @@ def create_infrastructure(
     session=None,
     update=False,
     wait=True,
-    environment: Literal["development", "production"] = "development",
+    environment: Literal["sandbox", "development", "production"] = "sandbox",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
 ):
     with open(cfn_template_file, mode="r") as f:

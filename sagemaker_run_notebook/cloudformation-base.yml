@@ -71,11 +71,12 @@
 Parameters:
   Environment:
     Type: String
-    Default: development
+    Default: sandbox
     AllowedValues:
+      - sandbox
       - development
       - production
-    Description: Environment Name - Enter development, production
+    Description: Environment Name - Enter sandbox, development, production
 
 Resources:
   ExecuteNotebookClientRole:

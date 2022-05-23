@@ -13,8 +13,8 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-ENVIRONMENT ?= development 	## development, production
-REGION ?= ap-southeast-2 		## ap-southeast-2, us-east-1
+ENVIRONMENT ?= sandbox 	## sandbox, development, production
+REGION ?= us-east-1 		## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 
 release: install test docs
@@ -50,7 +50,7 @@ create-infra: sagemaker_run_notebook/cloudformation.yml
 	run-notebook create-infrastructure --environment $(ENVIRONMENT) --region $(REGION)
 
 build-and-push:
-	cd container && ./build_and_push.sh sagemaker-run-notebook-$(ENVIRONMENT) $(REGION) $(TAG) 
+	cd container && ./build_and_push.sh sagemaker-run-notebook $(ENVIRONMENT) $(REGION) $(AWS_PROFILE) $(TAG) 
 
 update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
 	run-notebook create-infrastructure --update --environment $(ENVIRONMENT) --region $(REGION)

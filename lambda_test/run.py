@@ -7,6 +7,7 @@
 #####
 
 import argparse
+from multiprocessing import Event
 import os
 import sagemaker_run_notebook as run
 from relevanceai import Client
@@ -16,11 +17,13 @@ from pathlib import Path
 import json
 import time
 import logging
+import boto3
 
 from datetime import datetime
 
 from lambda_test.poll import handler as poll_handler
 
+from lambda_test.workflows import WORKFLOWS
 
 tags_metadata = []
 
@@ -124,20 +127,14 @@ def handler(event, context={}):
     if not params.get("authorizationToken"):
         params["authorizationToken"] = SUPPORT_ACTIVATION_TOKEN
 
-    global WORKFLOW_S3_URIS
-    if not WORKFLOW_S3_URIS:
-        client = Client(SUPPORT_ACTIVATION_TOKEN)
-        ds = client.Dataset("workflows-recipes")
-        WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url"].exists())
-        for w in WORKFLOWS:
-            if w["s3_url"].get(environment):
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][environment]
-            else:
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]["dev"]
+    WORKFLOW_SUFFIX = {w["_id"]: w["suffix"] for w in WORKFLOWS if w.get("suffix")}
 
     WORKFLOW_NAME = body.get("workflow_name")
-    NOTEBOOK_PATH = WORKFLOW_S3_URIS.get(WORKFLOW_NAME)
-    if not WORKFLOW_NAME or not NOTEBOOK_PATH:
+    account_id = boto3.client("sts").get_caller_identity().get("Account")
+
+    NOTEBOOK_PATH = f"s3://relevanceai-workflows-{account_id}-{region}/{environment}/{WORKFLOW_SUFFIX[WORKFLOW_NAME]}"
+
+    if not NOTEBOOK_PATH:
         body = {
             **{"message": f"Workflow {WORKFLOW_NAME} not found or is not valid."},
             **body,
@@ -171,7 +168,7 @@ def handler(event, context={}):
                 "job_id"
             ] = f"workflow-{environment}-{dataset_id}-{int(datetime.now().timestamp())}"
             JOB_ID_L = body["job_id"].replace("_", "-").split("-")
-            WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
+            WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[2:-1])[:30]
             JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
 
             print(f"Invoking Sagemaker processing job {JOB_ID} with {EXECUTION_ROLE}")
@@ -180,12 +177,12 @@ def handler(event, context={}):
             ## To overcome
             print(NOTEBOOK_PATH)
             sm_job = run.invoke(
-                notebook=NOTEBOOK_PATH,
+                input_path=NOTEBOOK_PATH,
                 environment=environment,
                 region=region,
-                image=f"sagemaker-run-notebook-{environment}",
+                image=f"sagemaker-run-notebook:{environment}-{event['image_tag']}",
                 role=EXECUTION_ROLE,
-                parameters={**{"JOB_ID": JOB_ID}, **params},
+                parameters={**{"job_id": JOB_ID}, **params},
                 upload_parameters=True,
             )
             if sm_job:
@@ -234,13 +231,14 @@ def main(args):
     global event
     event["environment"] = args.environment
     event["region"] = args.region
+    event["image_tag"] = args.image_tag
     if not args.poll:
         handler(event)
         json.dump(event, fp=open(EVENT_PATH, "w"), indent=4)
 
     event = json.loads(open(EVENT_PATH).read())
     if args.job_id:
-        event["body"]["JOB_ID"] = args.job_id.strip()
+        event["body"]["job_id"] = args.job_id.strip()
 
     poll_handler(event)
 
@@ -250,9 +248,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--environment",
-        default="development",
+        default="sandbox",
         type=str,
-        choices={"development", "production"},
+        choices={"sandbox", "development", "production"},
         help="Stage Name",
     )
     parser.add_argument(
@@ -270,5 +268,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "-j", "--job-id", default=None, help="If you want to poll a specific job id"
     )
+    parser.add_argument("-i", "--image-tag", default="20220523051355", help="Image tag")
     args = parser.parse_args()
     main(args)
