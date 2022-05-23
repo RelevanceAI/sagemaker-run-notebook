@@ -258,7 +258,7 @@ def list_rules(args):
 
 def create_infrastructure(args):
     infra.create_infrastructure(
-        update=args.update, stage=args.stage, region=args.region
+        update=args.update, environment=args.environment, region=args.region
     )
 
 
@@ -485,10 +485,10 @@ def cli_argparser():
         action="store_true",
     )
     createinfra_parser.add_argument(
-        "--stage",
-        help="Stage Name - [dev, stg, prd]",
-        default="dev",
-        choices=["dev", "stg", "prd"],
+        "--environment",
+        help="Stage Name - [development, production]",
+        default="development",
+        choices=["development", "production"],
     )
     createinfra_parser.add_argument(
         "--region",

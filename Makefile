@@ -13,8 +13,8 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-STAGE ?= dev ## dev, stg, prd
-REGION ?= ap-southeast-2 ## ap-southeast-2, us-east-1
+ENVIRONMENT ?= development 	## development, production
+REGION ?= ap-southeast-2 		## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 
 release: install test docs
@@ -42,18 +42,18 @@ clean-python:
 
 cfntemplate: sagemaker_run_notebook/cloudformation.yml
 
-create-infra:
-	run-notebook create-infrastructure --stage $(STAGE) --region $(REGION)
-
 sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation-base.yml sagemaker_run_notebook/lambda_function.py
 	pyminify sagemaker_run_notebook/lambda_function.py | sed 's/^/          /' > /tmp/minified.py
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
 
+create-infra: sagemaker_run_notebook/cloudformation.yml
+	run-notebook create-infrastructure --environment $(ENVIRONMENT) --region $(REGION)
+
 build-and-push:
-	cd container && ./build_and_push.sh sagemaker-run-notebook-$(STAGE) $(REGION) $(TAG) 
+	cd container && ./build_and_push.sh sagemaker-run-notebook-$(ENVIRONMENT) $(REGION) $(TAG) 
 
 update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
-	run-notebook create-infrastructure --update --stage $(STAGE) --region $(REGION)
+	run-notebook create-infrastructure --update --environment $(ENVIRONMENT) --region $(REGION)
 
 artifacts: clean cfntemplate
 	python setup.py sdist --dist-dir build/dist
@@ -65,10 +65,10 @@ test:
 	# python lambda_test.run.py
 
 test-lambda:
-	python lambda_test/run.py --stage $(STAGE)
+	python lambda_test/run.py --environment $(ENVIRONMENT)
 
 test-execute: build-and-push
-	cd container && docker run --rm -it -v ~/.aws:/root/.aws -v $(shell pwd)/container:/container/  --platform linux/amd64 -p 8080:8080 --env-file .env  sagemaker-run-notebook-$(STAGE)
+	cd container && docker run --rm -it -v ~/.aws:/root/.aws -v $(shell pwd)/container:/container/  --platform linux/amd64 -p 8080:8080 --env-file .env  sagemaker-run-notebook-$(ENVIRONMENT)
 
 docs:
 	(cd docs; make html)

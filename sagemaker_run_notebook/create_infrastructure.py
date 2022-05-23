@@ -55,7 +55,7 @@ def create_infrastructure(
     session=None,
     update=False,
     wait=True,
-    stage: Literal["dev", "stg", "prd"] = "dev",
+    environment: Literal["development", "production"] = "development",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
 ):
     with open(cfn_template_file, mode="r") as f:
@@ -66,29 +66,29 @@ def create_infrastructure(
     try:
         if not update:
             response = client.create_stack(
-                StackName=f"sagemaker-run-notebook-{stage}",
+                StackName=f"sagemaker-run-notebook-{environment}",
                 TemplateBody=cfn_template,
                 Capabilities=["CAPABILITY_NAMED_IAM"],
                 Parameters=[
                     {
-                        "ParameterKey": "Stage",
-                        "ParameterValue": stage,
+                        "ParameterKey": "Environment",
+                        "ParameterValue": environment,
                         "UsePreviousValue": False,
-                        "ResolvedValue": stage,
+                        "ResolvedValue": environment,
                     }
                 ],
             )
         else:
             response = client.update_stack(
-                StackName=f"sagemaker-run-notebook-{stage}",
+                StackName=f"sagemaker-run-notebook-{environment}",
                 TemplateBody=cfn_template,
                 Capabilities=["CAPABILITY_NAMED_IAM"],
                 Parameters=[
                     {
-                        "ParameterKey": "Stage",
-                        "ParameterValue": stage,
+                        "ParameterKey": "Environment",
+                        "ParameterValue": environment,
                         "UsePreviousValue": False,
-                        "ResolvedValue": stage,
+                        "ResolvedValue": environment,
                     }
                 ],
             )

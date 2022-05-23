@@ -131,7 +131,7 @@ def execute_notebook(
     *,
     image,
     input_path,
-    stage,
+    environment,
     output_prefix,
     notebook,
     parameters,
@@ -150,8 +150,8 @@ def execute_notebook(
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
-        if stage not in image:
-            image = f"{image}-{stage}"
+        if environment not in image:
+            image = f"{image}-{environment}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
 
     if notebook == None:
@@ -300,7 +300,7 @@ def run_notebook(
     image,
     notebook,
     parameters={},
-    stage: Literal["dev", "stg", "prd"] = "dev",
+    environment: Literal["development", "production"] = "production",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     role=None,
     instance_type="ml.m5.large",
@@ -331,13 +331,13 @@ def run_notebook(
 
     s3path = upload_notebook(notebook, parameters, session)
 
-    if stage not in image:
-        image = f"{image}-{stage}"
+    if environment not in image:
+        image = f"{image}-{environment}"
     job_name = execute_notebook(
         image=image,
         input_path=s3path,
         output_prefix=output_prefix,
-        stage=stage,
+        environment=environment,
         notebook=notebook,
         parameters=parameters,
         role=role,
@@ -647,7 +647,11 @@ lambda_description = (
 )
 
 
-def create_lambda(role=None, stage: Literal["dev", "stg", "prd"] = "dev", session=None):
+def create_lambda(
+    role=None,
+    environment: Literal["development", "production"] = "production",
+    session=None,
+):
     session = ensure_session(session)
     created = False
 
@@ -672,7 +676,7 @@ def create_lambda(role=None, stage: Literal["dev", "stg", "prd"] = "dev", sessio
     while True:
         try:
             result = client.create_function(
-                FunctionName=f"{lambda_function_name}-{stage}",
+                FunctionName=f"{lambda_function_name}-{environment}",
                 Runtime="python3.8",
                 Role=role,
                 Handler="lambda_function.lambda_handler",
@@ -762,7 +766,7 @@ class InvokeException(Exception):
 def invoke(
     notebook=None,
     image="sagemaker-run-notebook",
-    stage: Literal["dev", "stg", "prd"] = "dev",
+    environment: Literal["development", "production"] = "production",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     input_path=None,
     output_prefix=None,
@@ -815,8 +819,8 @@ def invoke(
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
-        if stage not in image:
-            image = f"{image}-{stage}"
+        if environment not in image:
+            image = f"{image}-{environment}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
 
     if not role:
@@ -871,8 +875,8 @@ def invoke(
     for f in extra_fns:
         extra_args = f(extra_args)
 
-    if stage not in image:
-        image = f"{image}-{stage}"
+    if environment not in image:
+        image = f"{image}-{environment}"
 
     args = {
         "image": image,
@@ -888,7 +892,7 @@ def invoke(
     client = session.client("lambda")
 
     result = client.invoke(
-        FunctionName=f"{lambda_function_name}-{stage}",
+        FunctionName=f"{lambda_function_name}-{environment}",
         InvocationType="RequestResponse",
         LogType="None",
         Payload=json.dumps(args).encode("utf-8"),
@@ -910,7 +914,7 @@ def schedule(
     schedule=None,
     event_pattern=None,
     image="sagemaker-run-notebook",
-    stage: Literal["dev", "stg", "prd"] = "dev",
+    environment: Literal["development", "production"] = "production",
     region: Literal["ap-southeast-2", "us-east-1"] = "ap-southeast-2",
     input_path=None,
     output_prefix=None,
@@ -980,8 +984,8 @@ def schedule(
     if "/" not in image:
         account = session.client("sts").get_caller_identity()["Account"]
         region = session.region_name
-        if stage not in image:
-            image = f"{image}-{stage}"
+        if environment not in image:
+            image = f"{image}-{environment}"
         image = "{}.dkr.ecr.{}.amazonaws.com/{}:latest".format(account, region, image)
 
     if not role:
@@ -1029,7 +1033,7 @@ def schedule(
     account = session.client("sts").get_caller_identity()["Account"]
     region = session.region_name
     target_arn = "arn:aws:lambda:{}:{}:function:{}".format(
-        region, account, f"{lambda_function_name}-{stage}"
+        region, account, f"{lambda_function_name}-{environment}"
     )
 
     result = events.put_targets(

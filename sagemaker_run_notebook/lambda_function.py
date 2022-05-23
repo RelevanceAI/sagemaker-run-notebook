@@ -9,7 +9,7 @@ import boto3
 def execute_notebook(
     *,
     image,
-    stage_name,
+    environment,
     input_path,
     output_prefix,
     notebook,
@@ -24,9 +24,9 @@ def execute_notebook(
 
     account = session.client("sts").get_caller_identity()["Account"]
     if not image:
-        if not stage_name:
-            stage_name = "dev"
-        image = f"sagemaker-run-notebook-{stage_name}"
+        if not environment:
+            environment = "development"
+        image = f"sagemaker-run-notebook-{environment}"
     if "/" not in image:
         image = f"{account}.dkr.ecr.{region}.amazonaws.com/{image}"
     if ":" not in image:
@@ -161,7 +161,7 @@ def ensure_session(session=None, region: Literal["ap-southeast-2", "us-east-1"] 
 def lambda_handler(event, context):
     job = execute_notebook(
         image=event.get("image"),
-        stage_name=event.get("stage_name"),
+        environment=event.get("environment"),
         input_path=event["input_path"],
         output_prefix=event.get("output_prefix"),
         notebook=event.get("notebook"),
