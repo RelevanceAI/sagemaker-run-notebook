@@ -161,7 +161,7 @@ def check_sm_job_status(job_id: str):
 
 def main(args):
     event = json.loads(open(EVENT_PATH).read())
-    event["stage"] = args.stage
+    event["environment"] = args.environment
     handler(event)
 
 
@@ -169,10 +169,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-s",
-        "--stage",
-        default="dev",
+        "--environment",
+        default="development",
         type=str,
-        choices={"dev", "stg", "prd"},
+        choices={"development", "production"},
         help="Run debug mode",
     )
     args = parser.parse_args()

@@ -97,13 +97,13 @@ def handler(event, context={}):
     start = time.time()
     # body = json.loads(event["body"])
     body = event["body"]
-    stage = event["stage"]
+    environment = event["environment"]
     region = event["region"]
     params = body["params"]
 
     NOTEBOOK_EXECUTION_ROLE = os.environ[
         "NOTEBOOK_EXECUTION_ROLE"
-    ] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{stage}"
+    ] = f"arn:aws:iam::701405094693:role/BasicExecuteNotebookRole-ap-southeast-2-{environment}"
 
     print(json.dumps(body, indent=2))
 
@@ -130,8 +130,8 @@ def handler(event, context={}):
         ds = client.Dataset("workflows-recipes")
         WORKFLOWS = ds.get_all_documents(filters=ds[f"s3_url"].exists())
         for w in WORKFLOWS:
-            if w["s3_url"].get(stage):
-                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][stage]
+            if w["s3_url"].get(environment):
+                WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"][environment]
             else:
                 WORKFLOW_S3_URIS[w["_id"]] = w["s3_url"]["dev"]
 
@@ -169,7 +169,7 @@ def handler(event, context={}):
             dataset_id = body["dataset_id"]
             body[
                 "job_id"
-            ] = f"workflow-{stage}-{dataset_id}-{int(datetime.now().timestamp())}"
+            ] = f"workflow-{environment}-{dataset_id}-{int(datetime.now().timestamp())}"
             JOB_ID_L = body["job_id"].replace("_", "-").split("-")
             WORKFLOW_DATASET_ID = "-".join(JOB_ID_L[1:-1])[:50]
             JOB_ID = "-".join([JOB_ID_L[0], WORKFLOW_DATASET_ID, JOB_ID_L[-1]])
@@ -181,9 +181,9 @@ def handler(event, context={}):
             print(NOTEBOOK_PATH)
             sm_job = run.invoke(
                 notebook=NOTEBOOK_PATH,
-                stage=stage,
+                environment=environment,
                 region=region,
-                image=f"sagemaker-run-notebook-{stage}",
+                image=f"sagemaker-run-notebook-{environment}",
                 role=EXECUTION_ROLE,
                 parameters={**{"JOB_ID": JOB_ID}, **params},
                 upload_parameters=True,
@@ -232,7 +232,7 @@ def return_response(response_code: int, body: dict) -> dict:
 
 def main(args):
     global event
-    event["stage"] = args.stage
+    event["environment"] = args.environment
     event["region"] = args.region
     if not args.poll:
         handler(event)
@@ -249,10 +249,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-s",
-        "--stage",
-        default="dev",
+        "--environment",
+        default="development",
         type=str,
-        choices={"dev", "stg", "prd"},
+        choices={"development", "production"},
         help="Stage Name",
     )
     parser.add_argument(
