@@ -24,7 +24,7 @@ project = "sagemaker-run-notebook"
 author = "Amazon Web Services"
 
 # The full version, including alpha/beta/rc tags
-release = "v0.25.1"
+release = "v0.26.0"
 
 
 # -- General configuration ---------------------------------------------------

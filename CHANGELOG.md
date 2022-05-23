@@ -1,6 +1,25 @@
 # Changelog
 
 
+## v0.26.0 (2022-05-23)
+
+This release supports -
+
+- Changing stage to environment - limiting to 'development' and 'production' to align with main env
+
+
+```python
+sm_job = run.invoke(
+                notebook=NOTEBOOK_PATH,
+                environment=environment,
+                region=region,
+                image=f"sagemaker-run-notebook-{stage}",
+                role=EXECUTION_ROLE,
+                parameters={**{"JOB_ID": JOB_ID}, **params},
+                upload_parameters=True,
+            )
+```
+
 
 ## v0.25.1 (2022-05-13)
 
