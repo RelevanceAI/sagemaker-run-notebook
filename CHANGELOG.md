@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.27.0 (2022-05-23)
+
+
+This release supports -
+
+- Adding sandbox environment so choice is now - sandbox, development, production
+- Moving all images to a single `sagemaker-run-notebook` repo - Environment is now determined by image tag
+
+eg. `f"sagemaker-run-notebook:{environment}-{event['image_tag']}"`
+
+
+```python
+sm_job = run.invoke(
+            input_path=NOTEBOOK_PATH,
+            environment=environment,
+            region=region,
+            image=f"sagemaker-run-notebook:{environment}-{event['image_tag']}",
+            role=EXECUTION_ROLE,
+            parameters={**{"job_id": JOB_ID}, **params},
+            upload_parameters=True,
+        )
+```
 
 ## v0.26.0 (2022-05-23)
 
