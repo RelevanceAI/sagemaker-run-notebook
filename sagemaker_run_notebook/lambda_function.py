@@ -2,7 +2,6 @@ import json
 import os
 import re
 import time
-from typing_extensions import Literal
 import boto3
 
 

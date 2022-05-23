@@ -127,7 +127,7 @@ sed -i "" -e 's/^\( *\"version": *"\)[^"]*\(".*$\)/\1'${new_version}'\2/'  labex
 set -e
 ./build-dist-files.sh
 
-# Stage commit and push
+# Environment commit and push
 git add -u
 git commit -m "Push version to ${new_tag} (with release.sh)"
 git tag ${new_tag}

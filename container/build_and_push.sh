@@ -61,7 +61,7 @@ echo "Region ${AWS_REGION}"
 DATE=$(date +%Y%m%d%H%M%S)
 TAG=${3:-$DATE}
 
-AWS_PROFILE=${4:-'relevanceai-sandbox'}
+AWS_PROFILE=${4:-'relevance-sandbox.AdministratorAccess'}
 
 ECR_REPOSITORY_URI="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 IMAGE_URI="${ECR_REPOSITORY_URI}/${IMAGE_NAME}"
