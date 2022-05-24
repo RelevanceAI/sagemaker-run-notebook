@@ -41,7 +41,7 @@ sm_client = boto3.client("sagemaker")
 def handler(event, context={}):
     body = event["body"]
     params = body["params"]
-    region = event["region"]
+    region = event["compute_region"]
 
     global sm_client
     sm_client = boto3.client("sagemaker", region_name=region)

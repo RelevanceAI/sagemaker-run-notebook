@@ -101,7 +101,7 @@ def handler(event, context={}):
     # body = json.loads(event["body"])
     body = event["body"]
     environment = event["environment"]
-    region = event["region"]
+    region = event["compute_region"]
     params = body["params"]
 
     NOTEBOOK_EXECUTION_ROLE = os.environ[
@@ -230,7 +230,7 @@ def return_response(response_code: int, body: dict) -> dict:
 def main(args):
     global event
     event["environment"] = args.environment
-    event["region"] = args.region
+    event["compute_region"] = args.region
     event["image_tag"] = args.image_tag
     if not args.poll:
         handler(event)
@@ -254,6 +254,7 @@ if __name__ == "__main__":
         help="Stage Name",
     )
     parser.add_argument(
+        "-r",
         "--region",
         help="AWS Region Name ",
         default="ap-southeast-2",

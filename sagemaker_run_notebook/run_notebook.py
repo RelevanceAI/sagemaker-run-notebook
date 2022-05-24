@@ -112,7 +112,7 @@ def upload_fileobj(fobj, fname, session=None):
       The resulting object name in S3 in URI format.
     """
 
-    session = ensure_session(session)
+    session = ensure_session()
     s3 = session.client("s3")
     key = "papermill_input/" + fname
     bucket = default_bucket(session)

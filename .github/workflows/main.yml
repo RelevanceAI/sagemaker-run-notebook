@@ -85,7 +85,7 @@ jobs:
         IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
       run: |
         echo "Building docker image"
-        cd $PWD/file-diff && docker build -f Dockerfile -t $ECR_REPOSITORY .
+        cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
 
         IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
 

@@ -13,7 +13,7 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-ENVIRONMENT ?= sandbox 			## sandbox, development, production
+ENVIRONMENT ?= sandbox 	## sandbox, development, production
 AWS_REGION ?= ap-southeast-2  	## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 
