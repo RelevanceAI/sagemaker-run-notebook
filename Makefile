@@ -14,7 +14,7 @@
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
 ENVIRONMENT ?= sandbox 	## sandbox, development, production
-REGION ?= us-east-1 		## ap-southeast-2, us-east-1
+REGION ?= ap-southeast-2 		## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 
 release: install test docs
