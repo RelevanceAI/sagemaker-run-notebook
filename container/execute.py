@@ -154,7 +154,6 @@ def run_notebook():
         #     error_message += f"\n{l}"
         #     if l == "":
         #         break
-
         print(error_message)
 
         if not os.getenv(params_var):
