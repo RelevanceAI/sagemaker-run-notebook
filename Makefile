@@ -14,7 +14,7 @@
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
 ENVIRONMENT ?= sandbox 	## sandbox, development, production
-REGION ?= ap-southeast-2 		## ap-southeast-2, us-east-1
+AWS_REGION ?= us-east-1		## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 
 release: install test docs
@@ -47,13 +47,13 @@ sagemaker_run_notebook/cloudformation.yml: sagemaker_run_notebook/cloudformation
 	cat sagemaker_run_notebook/cloudformation-base.yml /tmp/minified.py > sagemaker_run_notebook/cloudformation.yml
 
 create-infra: sagemaker_run_notebook/cloudformation.yml
-	run-notebook create-infrastructure --environment $(ENVIRONMENT) --region $(REGION)
+	run-notebook create-infrastructure --environment $(ENVIRONMENT) --region $(AWS_REGION)
 
 build-and-push:
-	cd container && ./build_and_push.sh sagemaker-run-notebook $(ENVIRONMENT) $(REGION) $(AWS_PROFILE) $(TAG) 
+	cd container && ./build_and_push.sh sagemaker-run-notebook $(ENVIRONMENT) $(AWS_REGION) $(AWS_PROFILE) $(TAG) 
 
 update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
-	run-notebook create-infrastructure --update --environment $(ENVIRONMENT) --region $(REGION)
+	run-notebook create-infrastructure --update --environment $(ENVIRONMENT) --region $(AWS_REGION)
 
 artifacts: clean cfntemplate
 	python setup.py sdist --dist-dir build/dist
