@@ -1,5 +1,15 @@
 # Changelog
 
+
+## v0.28.0 (2022-05-25)
+
+
+This release supports -
+
+- Action to build and push Sagemaker repo cross-region when source Lambda file changes
+- Allow `BasicExecuteNotebookRole` to reach `'arn:aws:s3:::relevanceai-workflows*'`
+
+
 ## v0.27.0 (2022-05-23)
 
 
