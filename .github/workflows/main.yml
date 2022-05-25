@@ -69,28 +69,27 @@ jobs:
         echo "::set-output name=aws_access_key_id::$(echo $AWS_ACCESS_KEY_ID)"
         echo "::set-output name=aws_secret_access_key::$(echo $AWS_SECRET_ACCESS_KEY)"
 
-    - name: Build Amazon ECR
+    - name: Build Docker image
       env:
         ECR_REPOSITORY: 'sagemaker-run-notebook'
       run: 
         echo "Building docker image"
   
-        cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY . && \
-        docker image ls $ECR_REPOSITORY 
+        cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
         # cd $PWD/container && ls
           
-    - name: Configure AWS credentials for source region
+    - name: Configure AWS credentials for ap-southeast-2
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ steps.set-environment.outputs.aws_access_key_id }}
         aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
         aws-region: ap-southeast-2
 
-    - name: Login to Amazon ECR
+    - name: Login to Amazon ECR ap-southeast-2
       id: login-ecr-ap-southeast-2
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Tag and push image to Amazon ECR
+    - name: Tag and push image to Amazon ECR ap-southeast-2
       env:
         ECR_REGISTRY: ${{ steps.login-ecr-ap-southeast-2.outputs.registry }}
         ECR_REPOSITORY: sagemaker-run-notebook
@@ -111,18 +110,18 @@ jobs:
         docker image push "$IMAGE_URI:$IMAGE_TAG"
         docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
           
-    - name: Configure AWS credentials for source region
+    - name: Configure AWS credentials for source region us-east-1
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ steps.set-environment.outputs.aws_access_key_id }}
         aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
         aws-region: us-east-1
 
-    - name: Login to Amazon ECR
+    - name: Login to Amazon ECR us-east-1
       id: login-ecr-us-east-1
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Tag and push image to Amazon ECR
+    - name: Tag and push image to Amazon ECR us-east-1
       env:
         ECR_REGISTRY: ${{ steps.login-ecr-us-east-1.outputs.registry }}
         ECR_REPOSITORY: sagemaker-run-notebook
