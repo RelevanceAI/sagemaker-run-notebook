@@ -101,6 +101,9 @@ jobs:
 
         echo "Pushing docker image to $IMAGE_URI"
         echo "$IMAGE_URI:$IMAGE_TAG"
+
+        echo "$IMAGE_URI:$IMAGE_LATEST_TAG"
+        
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
