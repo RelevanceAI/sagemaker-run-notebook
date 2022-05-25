@@ -30,13 +30,27 @@ jobs:
         run: |
           echo "::set-output name=file-diff::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep container/ | xargs)"
 
-
-  build:
-    name: Build and push
+  set-regions:
+    name: Set regions
     needs: changed-files
 
     if: ${{needs.changed-files.outputs.file-diff }}
     runs-on: ubuntu-latest
+
+    steps:
+    - name: Set regions
+      id: set-environment
+      run: |
+        AWS_REGIONS=$(ap-southeast-2 us-east-1)
+        echo "::set-output name=regions::$AWS_REGIONS"
+    
+
+  build:
+    name: Build and push ${{ matrix.region }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        region: ${{fromJSON(needs.set-regions.outputs.regions)}}
 
     steps:
     - name: Check out code
@@ -66,12 +80,12 @@ jobs:
         echo "::set-output name=aws_secret_access_key::$(echo $AWS_SECRET_ACCESS_KEY)"
 
 
-    - name: Configure AWS credentials
+    - name: Configure AWS credentials for source region
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ steps.set-environment.outputs.aws_access_key_id }}
         aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
-        aws-region: ${{ secrets.AWS_REGION }}
+        aws-region: ${{ matrix.region }}
 
     - name: Login to Amazon ECR
       id: login-ecr
