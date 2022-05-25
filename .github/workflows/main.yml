@@ -36,7 +36,7 @@ jobs:
     
   build:
     name: Build and push ap-southeast-2
-    # needs: set-regions
+    needs: changed-files
     runs-on: ubuntu-latest
     # strategy:
     #   matrix:
@@ -70,6 +70,8 @@ jobs:
         echo "::set-output name=aws_secret_access_key::$(echo $AWS_SECRET_ACCESS_KEY)"
 
     - name: Build Amazon ECR
+      env:
+        ECR_REPOSITORY: sagemaker-run-notebook
       run: 
         echo "Building docker image"
         cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
