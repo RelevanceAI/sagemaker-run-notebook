@@ -75,6 +75,7 @@ jobs:
       run: 
         echo "Building docker image"
         docker build -f $PWD/container/Dockerfile -t $ECR_REPOSITORY .
+        docker image ls $ECR_REPOSITORY 
         # cd $PWD/container && ls
         
 
@@ -105,8 +106,8 @@ jobs:
         echo "$IMAGE_URI:$IMAGE_LATEST_TAG"
         docker ps
         docker image ls
-        docker image tag $ECR_REPOSITORY:latest "$IMAGE_URI:$IMAGE_TAG"
-        docker image tag $ECR_REPOSITORY:latest "$IMAGE_URI:$IMAGE_LATEST_TAG"
+        docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
+        docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
         docker image push "$IMAGE_URI:$IMAGE_TAG"
         docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
