@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=need_an_image
+ARG BASE_IMAGE="python:3.7-slim-buster"
 FROM $BASE_IMAGE
 
 # ENV JUPYTER_ENABLE_LAB yes
