@@ -74,7 +74,9 @@ jobs:
         ECR_REPOSITORY: 'sagemaker-run-notebook'
       run: 
         echo "Building docker image"
+
         cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
+        
           
     - name: Configure AWS credentials for ap-southeast-2
       uses: aws-actions/configure-aws-credentials@v1
