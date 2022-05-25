@@ -25,15 +25,14 @@ jobs:
   set-regions:
     name: Set regions
     needs: changed-files
-
     if: ${{needs.changed-files.outputs.file-diff }}
     runs-on: ubuntu-latest
-
     steps:
     - name: Set regions
       id: set-environment
       run: |
-        AWS_REGIONS=["ap-southeast-2" "us-east-1"]
+        AWS_REGIONS=(ap-southeast-2 us-east-1)
+        AWS_REGIONS=$($AWS_REGIONS| jq -Rsc '. / "\n" - [""]' )
         echo "::set-output name=regions::$AWS_REGIONS"
     
   build:
