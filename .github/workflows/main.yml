@@ -92,7 +92,7 @@ jobs:
 
     - name: Tag and push image to Amazon ECR
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REGISTRY: ${{ steps.login-ecr-ap-southeast-2.outputs.registry }}
         ECR_REPOSITORY: sagemaker-run-notebook
         IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }} ## Change to {branch}-0.0.0
         IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
@@ -120,7 +120,7 @@ jobs:
 
     - name: Tag and push image to Amazon ECR
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REGISTRY: ${{ steps.login-ecr-us-east-1.outputs.registry }}
         ECR_REPOSITORY: sagemaker-run-notebook
         IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }} ## Change to {branch}-0.0.0
         IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
