@@ -74,6 +74,7 @@ jobs:
         ECR_REPOSITORY: sagemaker-run-notebook
       run: 
         echo "Building docker image"
+        cd $PWD/container && ls
         cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
 
           
