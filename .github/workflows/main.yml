@@ -104,8 +104,8 @@ jobs:
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
-        docker image push --all-tags "$IMAGE_URI"
-
+        docker image push "$IMAGE_URI:$IMAGE_TAG"
+        docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
           
     - name: Configure AWS credentials for source region
       uses: aws-actions/configure-aws-credentials@v1
@@ -132,5 +132,8 @@ jobs:
         echo "$IMAGE_URI:$IMAGE_TAG"
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
+        
+        docker image push "$IMAGE_URI:$IMAGE_TAG"
+        docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
-        docker image push --all-tags "$IMAGE_URI"
+        # docker image push --all-tags "$IMAGE_URI"
