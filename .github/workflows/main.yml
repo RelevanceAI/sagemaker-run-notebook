@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Set regions
-      id: set-environment
+      id: set-regions
       run: |
         AWS_REGIONS=['ap-southeast-2', 'us-east-1']
         echo "::set-output name=regions::$AWS_REGIONS"
