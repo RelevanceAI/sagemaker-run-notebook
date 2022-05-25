@@ -5,17 +5,10 @@ on:
   push:
       branches: [ main, development ]
   pull_request:
-    # branches:
-    #   - development
-    #   - main
-  # workflow_dispatch:
-
 
 jobs:
-
   changed-files:
     name: Source File Diff
-    # if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
     outputs:
       file-diff: ${{ steps.changes.outputs.file-diff }}
@@ -26,7 +19,6 @@ jobs:
 
       - name: Get changed files
         id: changes
-        # Set outputs using the command.
         run: |
           echo "::set-output name=file-diff::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep container/ | xargs)"
 
@@ -44,7 +36,6 @@ jobs:
         AWS_REGIONS=["ap-southeast-2" "us-east-1"]
         echo "::set-output name=regions::$AWS_REGIONS"
     
-
   build:
     name: Build and push ${{ matrix.region }}
     needs: set-regions
