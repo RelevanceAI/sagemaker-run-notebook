@@ -31,7 +31,7 @@ jobs:
     - name: Set regions
       id: set-regions
       run: |
-        AWS_REGIONS=['ap-southeast-2', 'us-east-1']
+        AWS_REGIONS=['ap-southeast-2']
         echo "::set-output name=regions::$AWS_REGIONS"
     
   build:
