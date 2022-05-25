@@ -142,7 +142,7 @@ Resources:
               - 'arn:aws:s3:::*SageMaker*'
               - 'arn:aws:s3:::*Sagemaker*'
               - 'arn:aws:s3:::*sagemaker*'
-              - 'arn:aws:s3:::relevanceai-workflows*'
+              - 'arn:aws:s3:::relevance-*'
           - Sid: s3create
             Effect: Allow
             Action:
@@ -193,7 +193,7 @@ Resources:
               - 'arn:aws:s3:::*SageMaker*'
               - 'arn:aws:s3:::*Sagemaker*'
               - 'arn:aws:s3:::*sagemaker*'
-              - 'arn:aws:s3:::relevanceai-workflows*'
+              - 'arn:aws:s3:::relevance-*'
           - Sid: vpcattach
             Effect: Allow
             Action:
@@ -252,7 +252,7 @@ Resources:
                   - 'arn:aws:s3:::*SageMaker*'
                   - 'arn:aws:s3:::*Sagemaker*'
                   - 'arn:aws:s3:::*sagemaker*'
-                  - 'arn:aws:s3:::relevanceai-workflows*'
+                  - 'arn:aws:s3:::relevance-*'
   LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
