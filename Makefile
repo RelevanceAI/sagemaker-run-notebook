@@ -52,7 +52,7 @@ create-infra: sagemaker_run_notebook/cloudformation.yml
 build-and-push:
 	cd container && ./build_and_push.sh sagemaker-run-notebook $(ENVIRONMENT) $(AWS_REGION) $(AWS_PROFILE) $(TAG) 
 
-update-infra: sagemaker_run_notebook/cloudformation.yml build-and-push
+update-infra: sagemaker_run_notebook/cloudformation.yml 
 	run-notebook create-infrastructure --update --environment $(ENVIRONMENT) --region $(AWS_REGION)
 
 artifacts: clean cfntemplate
