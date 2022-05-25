@@ -47,7 +47,7 @@ jobs:
 
   build:
     name: Build and push ${{ matrix.region }}
-    needs: setup-regions
+    needs: set-regions
     runs-on: ubuntu-latest
     strategy:
       matrix:
