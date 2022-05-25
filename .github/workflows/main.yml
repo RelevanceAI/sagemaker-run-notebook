@@ -103,9 +103,10 @@ jobs:
         echo "$IMAGE_URI:$IMAGE_TAG"
 
         echo "$IMAGE_URI:$IMAGE_LATEST_TAG"
-        
-        docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
-        docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
+        docker ps
+        docker image ls
+        docker image tag $ECR_REPOSITORY:latest "$IMAGE_URI:$IMAGE_TAG"
+        docker image tag $ECR_REPOSITORY:latest "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
         docker image push "$IMAGE_URI:$IMAGE_TAG"
         docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
