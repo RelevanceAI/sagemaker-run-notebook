@@ -10,36 +10,36 @@ env:
   ECR_REPOSITORY: sagemaker-run-notebook
 
 jobs:
-  # changed-files:
-  #   name: Source File Diff
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     file-diff: ${{ steps.changes.outputs.file-diff }}
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
+  changed-files:
+    name: Source File Diff
+    runs-on: ubuntu-latest
+    outputs:
+      file-diff: ${{ steps.changes.outputs.file-diff }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-  #     - name: Get changed files
-  #       id: changed-files
-  #       uses: tj-actions/changed-files@v19
-  #       with:
-  #         since_last_remote_commit: 'true'
-  #         files: |
-  #           container/*
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v19
+        with:
+          since_last_remote_commit: 'true'
+          files: |
+            container/*
 
-  #     - name: Set Changed Files
-  #       id: changes
-  #       run: |
-  #         echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
+      - name: Set Changed Files
+        id: changes
+        run: |
+          echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
     
   
   build:
     name: Build  ${{ matrix.region }}
     runs-on: ubuntu-latest
-    
-    # needs: changed-files
-    # if: ${{ needs.changed-files.outputs.file-diff }}
+
+    needs: changed-files
+    if: ${{ needs.changed-files.outputs.file-diff }}
 
     steps:
     - name: Check out code
@@ -58,18 +58,6 @@ jobs:
         push: false
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-    # - name: Build Docker image
-    #   env:
-    #     ECR_REPOSITORY: sagemaker-run-notebook
-    #   run: 
-    #     echo "Building docker image"
-
-    #     cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
-
-    #     mkdir -p /tmp/artifacts
-    #     docker save "$ECR_REPOSITORY" > /tmp/artifacts/docker-image.tar
-        # echo "latest" > /tmp/artifacts/docker-tag
     
     - name: Upload as artifact
       uses: actions/upload-artifact@v2
