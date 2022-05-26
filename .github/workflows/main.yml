@@ -39,6 +39,9 @@ jobs:
     if: ${{ needs.changed-files.outputs.file-diff }}
 
     steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
     - name: Build Docker image
       env:
         ECR_REPOSITORY: sagemaker-run-notebook
@@ -57,7 +60,7 @@ jobs:
         name: docker-artifact
         path: /tmp/artifacts/docker-image.tar
 
-  setup:
+  setup-regions:
     name: Set regions
     needs: build
     runs-on: ubuntu-latest
@@ -77,11 +80,11 @@ jobs:
 
   push:
     name: Push ${{ matrix.region }}
-    needs: setup
+    needs: setup-regions
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        region: ${{fromJSON(needs.setup.outputs.regions)}}
+        region: ${{fromJSON(needs.setup-regions.outputs.regions)}}
 
     steps:
     - name: Check out code

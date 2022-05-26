@@ -103,7 +103,7 @@ def run_notebook():
         os.chdir(notebook_dir)
 
         print("Executing {} with output to {}".format(notebook_file, output_notebook))
-        ## Mask creds
+
         params_clean = params.copy()
         if params_clean.get("authorizationToken"):
             params_clean["authorizationToken"] = "*" * len(
