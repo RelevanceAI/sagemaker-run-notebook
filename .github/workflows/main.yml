@@ -29,16 +29,41 @@ jobs:
         id: changes
         run: |
           echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
+    
+  
+  build:
+    name: Build  ${{ matrix.region }}
+    needs: changed-files
+    runs-on: ubuntu-latest
+
+    if: ${{ needs.changed-files.outputs.file-diff }}
+
+    steps:
+    - name: Build Docker image
+      env:
+        ECR_REPOSITORY: sagemaker-run-notebook
+      run: 
+        echo "Building docker image"
+
+        cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
+
+        mkdir -p /tmp/artifacts
+        docker save "$ECR_REPOSITORY" > /tmp/artifacts/docker-image.tar
+        # echo "latest" > /tmp/artifacts/docker-tag
+    
+    - name: Upload as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: docker-artifact
+        path: /tmp/artifacts/docker-image.tar
 
   setup:
     name: Set regions
-    needs: changed-files
-
-    if: ${{ needs.changed-files.outputs.file-diff }}
+    needs: build
+    runs-on: ubuntu-latest
     outputs:
       regions: ${{ steps.set-regions.outputs.regions }}
-
-    runs-on: ubuntu-latest
+    
     steps:
     - name: Set regions
       id: set-regions
@@ -48,10 +73,10 @@ jobs:
 
         echo $AWS_REGIONS
         echo "::set-output name=regions::$AWS_REGIONS"
-    
+  
 
-  build:
-    name: Build and push ${{ matrix.region }}
+  push:
+    name: Push ${{ matrix.region }}
     needs: setup
     runs-on: ubuntu-latest
     strategy:
@@ -87,15 +112,6 @@ jobs:
         echo "::set-output name=short-sha::$(git rev-parse --short ${{ github.sha }})"
         echo "::set-output name=aws_access_key_id::$(echo $AWS_ACCESS_KEY_ID)"
         echo "::set-output name=aws_secret_access_key::$(echo $AWS_SECRET_ACCESS_KEY)"
-
-    - name: Build Docker image
-      env:
-        ECR_REPOSITORY: sagemaker-run-notebook
-      run: 
-        echo "Building docker image"
-
-        cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
-
           
     - name: Configure AWS credentials for ${{ matrix.region }}
       uses: aws-actions/configure-aws-credentials@v1
@@ -107,6 +123,17 @@ jobs:
     - name: Login to Amazon ECR ${{ matrix.region }}
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Download Docker Image (Artifact)
+      uses: actions/download-artifact@v2
+      with:
+        name: docker-artifact
+        path: /tmp/artifacts
+    
+    - name: Load Docker image
+      run: |
+          cd path/to/artifacts
+          docker load < docker-image.tar
 
     - name: Tag and push image to Amazon ECR ${{ matrix.region }}
       env:
