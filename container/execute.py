@@ -130,7 +130,7 @@ def run_notebook():
         print(error_message)
 
         if not os.getenv(params_var):
-            FPATH = ROOT_PATH / "error"  ## Local
+            FPATH = ROOT_PATH / "error"
         else:
             FPATH = "/opt/ml/output/message"
 
@@ -161,6 +161,7 @@ def run_notebook():
         # A non-zero exit code causes the training job to be marked as Failed logger.
         print(f"Exiting Sagemaker job ...")
         sys.exit(1)
+
         # output_notebook = "xyzzy"  # Dummy for print, below
 
     if not os.path.exists(output_notebook):

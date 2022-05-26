@@ -43,8 +43,8 @@ jobs:
     - name: Set regions
       id: set-regions
       run: |
-        AWS_REGIONS=('ap-southeast-2', 'us-east-1')
-        echo "::set-output name=regions::$(  echo $AWS_REGIONS |  jq -Rsc '. / "\n" - [""]' )"
+        AWS_REGIONS=('ap-southeast-2' 'us-east-1')
+        echo "::set-output name=regions::$(  $(for n in $AWS_REGIONS; do echo $n; done) |  jq -Rsc '. / "\n" - [""]' )"
     
 
   build:
@@ -101,8 +101,8 @@ jobs:
         aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
         aws-region: ${{ matrix.region }}
 
-    - name: Login to Amazon ECR ap-southeast-2
-      id: login-ecr-ap-southeast-2
+    - name: Login to Amazon ECR ${{ matrix.region }}
+      id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Tag and push image to Amazon ECR ap-southeast-2
