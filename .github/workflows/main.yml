@@ -38,7 +38,7 @@ jobs:
     
   build:
     name: Build and push
-    needs: changed-files
+    needs: set-regions
     runs-on: ubuntu-latest
     strategy:
       matrix:
