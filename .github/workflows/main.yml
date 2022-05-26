@@ -52,7 +52,7 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: container/
-        file: ./Dockerfile
+        file: container/Dockerfile
         tags: ${{ env.ECR_REPOSITORY }}:latest
         outputs: type=docker,dest=/tmp/myimage.tar
         push: false
