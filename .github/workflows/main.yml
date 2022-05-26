@@ -30,7 +30,7 @@ jobs:
         run: |
           echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
 
-  set-regions:
+  setup:
     name: Set regions
     needs: changed-files
 
@@ -44,7 +44,8 @@ jobs:
       id: set-regions
       run: |
         AWS_REGIONS=("ap-southeast-2" "us-east-1")
-        AWS_REGIONS=$( for r in $AWS_REGIONS; do echo $r; done |  jq -Rsc '. / "\n" - [""]' )
+        AWS_REGIONS=$( for r in $AWS_REGIONS; do echo $r; done | jq -Rsc '. / "\n" - [""]' )
+        echo $AWS_REGIONS
 
         echo "::set-output name=regions::$AWS_REGIONS"
     
@@ -55,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        region: ${{fromJSON(needs.set-regions.outputs.regions)}}
+        region: ${{fromJSON(needs.setup.outputs.regions)}}
 
     steps:
     - name: Check out code
