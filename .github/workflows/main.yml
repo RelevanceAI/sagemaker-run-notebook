@@ -6,6 +6,9 @@ on:
       branches: [ main, development ]
   pull_request:
 
+env:
+  ECR_REPOSITORY: sagemaker-run-notebook
+
 jobs:
   # changed-files:
   #   name: Source File Diff
@@ -34,8 +37,6 @@ jobs:
   build:
     name: Build  ${{ matrix.region }}
     runs-on: ubuntu-latest
-    env:
-      ECR_REPOSITORY: sagemaker-run-notebook
     
     # needs: changed-files
     # if: ${{ needs.changed-files.outputs.file-diff }}
@@ -52,11 +53,11 @@ jobs:
       with:
         context: .
         file: ./container/Dockerfile
-        tags: $ECR_REPOSITORY:latest
+        tags: ${{ env.ECR_REPOSITORY }}:latest
         outputs: type=docker,dest=/tmp/myimage.tar
         push: false
-        # cache-from: type=gha
-        # cache-to: type=gha,mode=max
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     # - name: Build Docker image
     #   env:
@@ -73,7 +74,7 @@ jobs:
     - name: Upload as artifact
       uses: actions/upload-artifact@v2
       with:
-        name: $ECR_REPOSITORY
+        name: ${{ env.ECR_REPOSITORY }}
         path: /tmp/artifacts/docker-image.tar
 
   setup-regions:
@@ -101,8 +102,6 @@ jobs:
     strategy:
       matrix:
         region: ${{fromJSON(needs.setup-regions.outputs.regions)}}
-    env:
-      ECR_REPOSITORY: sagemaker-run-notebook
     steps:
     - name: Check out code
       uses: actions/checkout@v2
@@ -147,7 +146,7 @@ jobs:
     - name: Download Docker Image (Artifact)
       uses: actions/download-artifact@v2
       with:
-        name: $ECR_REPOSITORY
+        name: ${{ env.ECR_REPOSITORY }}
         path: /tmp
     
     - name: Load Docker image
@@ -160,6 +159,7 @@ jobs:
         IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }}  ## Change to {branch}-0.0.0
         IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest                                   ## Change to {branch}-latest
       run: |
+        ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
         IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
 
         echo "Pushing docker image to $IMAGE_URI"
