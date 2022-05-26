@@ -32,30 +32,17 @@ output_var = "PAPERMILL_OUTPUT"
 params_var = "PAPERMILL_PARAMS"
 
 ## Local testing -
-PAPERMILL_PARAMS = """{
+PAPERMILL_PARAMS = f"""{
             "dataset_id": "test-vectorize",
             "model_id": "clip",
             "encode_type": "image_urls",
             "fields": ["product_image"],
-            "authorizationToken":"452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
+            "authorizationToken":"{os.environ['TEST_ACTIVATION_TOKEN']}"
 }"""
 
 ROOT_PATH = Path(__file__).parent
 
-# from traceback_json import render_orjson
-# import structlog
 
-# processors = [
-#         structlog.processors.add_log_level,
-#         structlog.processors.TimeStamper(),
-#     ]
-
-# processors.append(render_orjson)
-
-# structlog.configure(
-#         processors=processors,
-#     )
-# logger = structlog.get_logger()
 def run_notebook():
     try:
         if not os.getenv(input_var):
@@ -158,16 +145,6 @@ def run_notebook():
             FPATH = ROOT_PATH / "error"  ## Local
         else:
             FPATH = "/opt/ml/output/message"
-
-        # Outputing log to S3
-        # logger = configure_traceback_json_logger(filename=FPATH)
-        # logger.exception( e, exc_info=e)
-        # logger.error( e)
-
-        # import logging
-        # logging.FileHandler(FPATH)
-
-        # print(type(logging.exception( e, exc_info=e, filename=FPATH)))
 
         # Dump as valid json
         err = trc_data[-2]
