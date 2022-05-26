@@ -51,8 +51,8 @@ jobs:
     - name: Build and export
       uses: docker/build-push-action@v3
       with:
-        context: .
-        file: ./container/Dockerfile
+        context: container/
+        file: ./Dockerfile
         tags: ${{ env.ECR_REPOSITORY }}:latest
         outputs: type=docker,dest=/tmp/myimage.tar
         push: false
