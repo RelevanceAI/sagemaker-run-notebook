@@ -32,30 +32,15 @@ output_var = "PAPERMILL_OUTPUT"
 params_var = "PAPERMILL_PARAMS"
 
 ## Local testing -
-PAPERMILL_PARAMS = """{
+PAPERMILL_PARAMS = f"""{
             "dataset_id": "test-vectorize",
             "model_id": "clip",
             "encode_type": "image_urls",
             "fields": ["product_image"],
-            "authorizationToken":"452d7499c071ab48e4e5:WTBHYXJYNEJoeGxuNEFNVTVPNXg6VTc2UFVHUmtTMUd2MFMzb05HRUZFdw:us-east-1:nZmokoHGVSRXtDXauVWrrbyEsBe2"
+            "authorizationToken":"{os.environ['TEST_REGINES_TOKEN']}"
 }"""
 
 ROOT_PATH = Path(__file__).parent
-
-# from traceback_json import render_orjson
-# import structlog
-
-# processors = [
-#         structlog.processors.add_log_level,
-#         structlog.processors.TimeStamper(),
-#     ]
-
-# processors.append(render_orjson)
-
-# structlog.configure(
-#         processors=processors,
-#     )
-# logger = structlog.get_logger()
 
 
 def run_notebook():
@@ -76,7 +61,6 @@ def run_notebook():
         notebook_dir = os.path.dirname(notebook_path)
         notebook_file = os.path.basename(notebook_path)
 
-        # If the user specified notebook path in S3, run with that path.
         if notebook_path.startswith("s3://"):
             print("Downloading notebook {}".format(notebook_path))
             o = urlparse(notebook_path)
@@ -96,7 +80,6 @@ def run_notebook():
 
         if params.get("S3_PATH"):
             params_path = params.get("S3_PATH")
-            # params_dir = os.path.dirname(params_path)
             params_file = os.path.basename(params_path)
 
             print("Downloading params file {}".format(params_path))
@@ -120,7 +103,7 @@ def run_notebook():
         os.chdir(notebook_dir)
 
         print("Executing {} with output to {}".format(notebook_file, output_notebook))
-        ## Mask creds
+
         params_clean = params.copy()
         if params_clean.get("authorizationToken"):
             params_clean["authorizationToken"] = "*" * len(
@@ -135,48 +118,27 @@ def run_notebook():
         print("Execution complete")
 
     except Exception as e:
-        # Write out an error file. This will be returned as the ExitMessage in the DescribeProcessingJob result.
+
         trc = traceback.format_exc()
 
         error_message = "Exception during processing: " + str(e) + "\n" + trc
         # print(str(trc))
 
         trc_data = trc.splitlines()
-        ## Returning first error
-        # start_index = 0
-        # for i, l in enumerate(trc_data):
-        #     if l.startswith("Input"):
-        #         start_index = i
-        #         break
-
-        # error_message = trc_data[-2]
-        # for i, l in enumerate(trc_data[start_index:-1]):
-        #     error_message += f"\n{l}"
-        #     if l == "":
-        #         break
         print(error_message)
 
+        # Write out an error file. This will be returned as the ExitMessage in the DescribeProcessingJob result.
         if not os.getenv(params_var):
-            FPATH = ROOT_PATH / "error"  ## Local
+            FPATH = ROOT_PATH / "error"
         else:
             FPATH = "/opt/ml/output/message"
-
-        # Outputing log to S3
-        # logger = configure_traceback_json_logger(filename=FPATH)
-        # logger.exception( e, exc_info=e)
-        # logger.error( e)
-
-        # import logging
-        # logging.FileHandler(FPATH)
-
-        # print(type(logging.exception( e, exc_info=e, filename=FPATH)))
 
         # Dump as valid json
         err = trc_data[-2]
         try:
             err_s = err.split(": ")
             try:
-                message = json.loads(err_s[1])  ## Load if dict
+                message = json.loads(err_s[1])
             except:
                 message = err_s[1]
             err_dict = {"error": err_s[0], **{"message": message}}
@@ -185,25 +147,24 @@ def run_notebook():
             print(f"Error loading error message as dict: {e}")
 
         with open(FPATH, "w") as f:
-            print(f"Writing failure message to file...")
+            print(f"Writing failure message to file ...")
             f.write(err)
 
         try:
             with open(FPATH, "r") as f:
-                print(f"Reading failure message to file...")
+                print(f"Reading failure message to file ...")
                 print(json.load(f))
         except Exception as e:
             print(f"Error reading failure message as dict {e} ...")
 
-        # A non-zero exit code causes the training job to be marked as Failed logger.
+        # A non-zero exit code causes the training job to be marked as Failed logs in SM.
         print(f"Exiting Sagemaker job ...")
         sys.exit(1)
-        # output_notebook = "xyzzy"  # Dummy for print, below
 
     if not os.path.exists(output_notebook):
-        print("No output notebook was generated")
+        print("No output notebook was generated.")
     else:
-        print("Output was written to {}".format(output_notebook))
+        print(f"Output was written to {output_notebook}")
 
 
 if __name__ == "__main__":

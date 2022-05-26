@@ -6,6 +6,9 @@ on:
       branches: [ main, development ]
   pull_request:
 
+env:
+  ECR_REPOSITORY: sagemaker-run-notebook
+
 jobs:
   changed-files:
     name: Source File Diff
@@ -18,30 +21,75 @@ jobs:
           fetch-depth: 0
 
       - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v19
+        with:
+          since_last_remote_commit: 'true'
+          files: |
+            container/*
+
+      - name: Set Changed Files
         id: changes
         run: |
-          echo "::set-output name=file-diff::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep container/ | xargs)"
-
-  # set-regions:
-  #   name: Set regions
-  #   needs: changed-files
-  #   if: ${{needs.changed-files.outputs.file-diff }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Set regions
-  #     id: set-regions
-  #     run: |
-  #       AWS_REGIONS=['ap-southeast-2']
-  #       echo "::set-output name=regions::$AWS_REGIONS"
+          echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
     
+  
   build:
-    name: Build and push
-    needs: changed-files
+    name: Build  ${{ matrix.region }}
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     region: ${{fromJSON(needs.set-regions.outputs.regions)}}
 
+    needs: changed-files
+    if: ${{ needs.changed-files.outputs.file-diff }}
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and export
+      uses: docker/build-push-action@v3
+      with:
+        context: container/
+        file: container/Dockerfile
+        tags: ${{ env.ECR_REPOSITORY }}:latest
+        outputs: type=docker,dest=/tmp/${{ env.ECR_REPOSITORY }}.tar
+        push: false
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Upload as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.ECR_REPOSITORY }}
+        path: /tmp/${{ env.ECR_REPOSITORY }}.tar
+
+  setup-regions:
+    name: Set regions
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      regions: ${{ steps.set-regions.outputs.regions }}
+    
+    steps:
+    - name: Set regions
+      id: set-regions
+      run: |
+        AWS_REGIONS=("ap-southeast-2" "us-east-1")
+        AWS_REGIONS=$( for r in ${AWS_REGIONS[@]}; do echo $r; done | jq -Rsc '. / "\n" - [""]' )
+
+        echo $AWS_REGIONS
+        echo "::set-output name=regions::$AWS_REGIONS"
+  
+
+  push:
+    name: Push ${{ matrix.region }}
+    needs: setup-regions
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        region: ${{fromJSON(needs.setup-regions.outputs.regions)}}
     steps:
     - name: Check out code
       uses: actions/checkout@v2
@@ -49,12 +97,13 @@ jobs:
     - name: Set Github env var based on branch name
       id: set-environment
       run: |
-        echo ${GITHUB_REF_NAME#refs/heads/}
-        if [[ ${GITHUB_REF_NAME#refs/heads/} == "main" ]]; then
+        BRANCH_NAME=${{ github.ref_name }}
+        echo $BRANCH_NAME
+        if [[ $BRANCH_NAME == "master" ]]; then
           export ENVIRONMENT="production"
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        elif [[ ${GITHUB_REF_NAME#refs/heads/} == "development" ]]; then
+        elif [[ $BRANCH_NAME == "development" ]]; then
           export ENVIRONMENT="development"
           export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -63,43 +112,42 @@ jobs:
           export AWS_ACCESS_KEY_ID=${{ secrets.SANDBOX_AWS_ACCESS_KEY_ID }}
           export AWS_SECRET_ACCESS_KEY=${{ secrets.SANDBOX_AWS_SECRET_ACCESS_KEY }}
         fi
-        echo $
-        
-        ENVIRONMENT=development
-        export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
-        export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+        echo $ENVIRONMENT
+
         echo "##[set-output name=environment;]$(echo $ENVIRONMENT)"
         echo "::set-output name=short-sha::$(git rev-parse --short ${{ github.sha }})"
         echo "::set-output name=aws_access_key_id::$(echo $AWS_ACCESS_KEY_ID)"
         echo "::set-output name=aws_secret_access_key::$(echo $AWS_SECRET_ACCESS_KEY)"
-
-    - name: Build Docker image
-      env:
-        ECR_REPOSITORY: 'sagemaker-run-notebook'
-      run: 
-        echo "Building docker image"
-
-        cd $PWD/container && docker build -f Dockerfile -t $ECR_REPOSITORY .
-
           
-    - name: Configure AWS credentials for ap-southeast-2
+    - name: Configure AWS credentials for ${{ matrix.region }}
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ steps.set-environment.outputs.aws_access_key_id }}
         aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
-        aws-region: ap-southeast-2
+        aws-region: ${{ matrix.region }}
 
-    - name: Login to Amazon ECR ap-southeast-2
-      id: login-ecr-ap-southeast-2
+    - name: Login to Amazon ECR ${{ matrix.region }}
+      id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Tag and push image to Amazon ECR ap-southeast-2
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr-ap-southeast-2.outputs.registry }}
-        ECR_REPOSITORY: sagemaker-run-notebook
-        IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }} ## Change to {branch}-0.0.0
-        IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
+    
+    - name: Download Docker Image (Artifact)
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{ env.ECR_REPOSITORY }}
+        path: /tmp
+    
+    - name: Load Docker image
       run: |
+          docker load < /tmp/${{ env.ECR_REPOSITORY }}.tar
+
+    - name: Tag and push image to Amazon ECR ${{ matrix.region }}
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }}  ## Change to {branch}-0.0.0
+        IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest                                   ## Change to {branch}-latest
+      run: |
+        ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
         IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
 
         echo "Pushing docker image to $IMAGE_URI"
@@ -109,36 +157,4 @@ jobs:
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
         docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
-        docker image push "$IMAGE_URI:$IMAGE_TAG"
-        docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
-          
-    - name: Configure AWS credentials for source region us-east-1
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ steps.set-environment.outputs.aws_access_key_id }}
-        aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
-        aws-region: us-east-1
-
-    - name: Login to Amazon ECR us-east-1
-      id: login-ecr-us-east-1
-      uses: aws-actions/amazon-ecr-login@v1
-
-    - name: Tag and push image to Amazon ECR us-east-1
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr-us-east-1.outputs.registry }}
-        ECR_REPOSITORY: sagemaker-run-notebook
-        IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }} ## Change to {branch}-0.0.0
-        IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
-      run: |
-        
-        IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
-
-        echo "Pushing docker image to $IMAGE_URI"
-        echo "$IMAGE_URI:$IMAGE_TAG"
-        docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
-        docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
-        
-        docker image push "$IMAGE_URI:$IMAGE_TAG"
-        docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
-
-        # docker image push --all-tags "$IMAGE_URI"
+        docker image push --all-tags "$IMAGE_URI"
