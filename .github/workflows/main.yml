@@ -43,10 +43,10 @@ jobs:
     - name: Set regions
       id: set-regions
       run: |
-        AWS_REGIONS=['ap-southeast-2']
-        echo "::set-output name=regions::$AWS_REGIONS"
+        AWS_REGIONS=('ap-southeast-2', 'us-east-1')
+        echo "::set-output name=regions::$(  echo $NOTEBOOKS |  jq -Rsc '. / "\n" - [""]')"
     
-    
+
   build:
     name: Build and push ${{ matrix.region }}
     needs: set-regions
@@ -109,8 +109,8 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr-ap-southeast-2.outputs.registry }}
         ECR_REPOSITORY: sagemaker-run-notebook
-        IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }} ## Change to {branch}-0.0.0
-        IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
+        IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }}  ## Change to {branch}-0.0.0
+        IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest                                   ## Change to {branch}-latest
       run: |
         IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
 
@@ -125,34 +125,3 @@ jobs:
         # docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
 
         docker image push --all-tags "$IMAGE_URI"
-          
-    # - name: Configure AWS credentials for source region us-east-1
-    #   uses: aws-actions/configure-aws-credentials@v1
-    #   with:
-    #     aws-access-key-id: ${{ steps.set-environment.outputs.aws_access_key_id }}
-    #     aws-secret-access-key: ${{ steps.set-environment.outputs.aws_secret_access_key }}
-    #     aws-region: us-east-1
-
-    # - name: Login to Amazon ECR us-east-1
-    #   id: login-ecr-us-east-1
-    #   uses: aws-actions/amazon-ecr-login@v1
-
-    # - name: Tag and push image to Amazon ECR us-east-1
-    #   env:
-    #     ECR_REGISTRY: ${{ steps.login-ecr-us-east-1.outputs.registry }}
-    #     ECR_REPOSITORY: sagemaker-run-notebook
-    #     IMAGE_TAG: ${{ steps.set-environment.outputs.environment }}-${{ steps.set-environment.outputs.short-sha }} ## Change to {branch}-0.0.0
-    #     IMAGE_LATEST_TAG: ${{ steps.set-environment.outputs.environment }}-latest     ## Change to {branch}-latest
-    #   run: |
-        
-    #     IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY"
-
-    #     echo "Pushing docker image to $IMAGE_URI"
-    #     echo "$IMAGE_URI:$IMAGE_TAG"
-    #     docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_TAG"
-    #     docker image tag $ECR_REPOSITORY "$IMAGE_URI:$IMAGE_LATEST_TAG"
-        
-    #     docker image push "$IMAGE_URI:$IMAGE_TAG"
-    #     docker image push "$IMAGE_URI:$IMAGE_LATEST_TAG"
-
-    #     # docker image push --all-tags "$IMAGE_URI"
