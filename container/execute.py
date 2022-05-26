@@ -148,7 +148,7 @@ def run_notebook():
             print(f"Error loading error message as dict: {e}")
 
         with open(FPATH, "w") as f:
-            print(f"Writing failure message to file...")
+            print(f"Writing failure message to file ...")
             f.write(err)
 
         try:
