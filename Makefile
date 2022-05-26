@@ -13,9 +13,10 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-ENVIRONMENT ?= sandbox 	## sandbox, development, production
+ENVIRONMENT ?= development 	## sandbox, development, production
 AWS_REGION ?= ap-southeast-2  	## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
+AWS_PROFILE ?= Relevance-AI.WorkflowsAdminAccess
 
 release: install test docs
 	make artifacts
