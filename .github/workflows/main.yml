@@ -54,7 +54,7 @@ jobs:
         context: container/
         file: container/Dockerfile
         tags: ${{ env.ECR_REPOSITORY }}:latest
-        outputs: type=docker,dest=/tmp/myimage.tar
+        outputs: type=docker,dest=/tmp/${{ env.ECR_REPOSITORY }}.tar
         push: false
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -75,7 +75,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.ECR_REPOSITORY }}
-        path: /tmp/artifacts/docker-image.tar
+        path: /tmp/artifacts/${{ env.ECR_REPOSITORY }}.tar
 
   setup-regions:
     name: Set regions
@@ -151,7 +151,7 @@ jobs:
     
     - name: Load Docker image
       run: |
-          docker load < docker-image.tar
+          docker load < ${{ env.ECR_REPOSITORY }}.tar
 
     - name: Tag and push image to Amazon ECR ${{ matrix.region }}
       env:
