@@ -126,7 +126,6 @@ def run_notebook():
         # print(str(trc))
 
         trc_data = trc.splitlines()
-
         print(error_message)
 
         if not os.getenv(params_var):
@@ -161,8 +160,6 @@ def run_notebook():
         # A non-zero exit code causes the training job to be marked as Failed logger.
         print(f"Exiting Sagemaker job ...")
         sys.exit(1)
-
-        # output_notebook = "xyzzy"  # Dummy for print, below
 
     if not os.path.exists(output_notebook):
         print("No output notebook was generated")
