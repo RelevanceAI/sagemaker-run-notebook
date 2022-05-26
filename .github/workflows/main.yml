@@ -44,7 +44,8 @@ jobs:
       id: set-regions
       run: |
         AWS_REGIONS=('ap-southeast-2' 'us-east-1')
-        echo "::set-output name=regions::$(  $(for n in $AWS_REGIONS; do echo $n; done) |  jq -Rsc '. / "\n" - [""]' )"
+
+        echo "::set-output name=regions::$(for n in $AWS_REGIONS; do echo $n; done |  jq -Rsc '. / "\n" - [""]')"
     
 
   build:
