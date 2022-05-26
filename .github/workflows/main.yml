@@ -18,9 +18,17 @@ jobs:
           fetch-depth: 0
 
       - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v19
+        with:
+          since_last_remote_commit: 'true'
+          files: |
+            container/*
+
+      - name: Get changed files
         id: changes
         run: |
-          echo "::set-output name=file-diff::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep container/ | xargs)"
+          echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
 
   set-regions:
     name: Set regions

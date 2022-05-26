@@ -56,8 +56,6 @@ ROOT_PATH = Path(__file__).parent
 #         processors=processors,
 #     )
 # logger = structlog.get_logger()
-
-
 def run_notebook():
     try:
         if not os.getenv(input_var):
