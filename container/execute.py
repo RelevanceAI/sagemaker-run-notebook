@@ -61,7 +61,6 @@ def run_notebook():
         notebook_dir = os.path.dirname(notebook_path)
         notebook_file = os.path.basename(notebook_path)
 
-        # If the user specified notebook path in S3, run with that path.
         if notebook_path.startswith("s3://"):
             print("Downloading notebook {}".format(notebook_path))
             o = urlparse(notebook_path)
