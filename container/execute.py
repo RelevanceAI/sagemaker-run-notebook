@@ -157,7 +157,7 @@ def run_notebook():
         except Exception as e:
             print(f"Error reading failure message as dict {e} ...")
 
-        # A non-zero exit code causes the training job to be marked as Failed logger.
+        # A non-zero exit code causes the training job to be marked as Failed logs in SM.
         print(f"Exiting Sagemaker job ...")
         sys.exit(1)
 
