@@ -33,9 +33,11 @@ jobs:
   set-regions:
     name: Set regions
     needs: changed-files
+
     if: ${{needs.changed-files.outputs.file-diff }}
     outputs:
       regions: ${{ steps.set-regions.outputs.regions }}
+
     runs-on: ubuntu-latest
     steps:
     - name: Set regions
@@ -44,8 +46,9 @@ jobs:
         AWS_REGIONS=['ap-southeast-2']
         echo "::set-output name=regions::$AWS_REGIONS"
     
+    
   build:
-    name: Build and push
+    name: Build and push ${{ matrix.region }}
     needs: set-regions
     runs-on: ubuntu-latest
     strategy:
