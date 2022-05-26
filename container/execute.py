@@ -153,7 +153,7 @@ def run_notebook():
 
         try:
             with open(FPATH, "r") as f:
-                print(f"Reading failure message to file...")
+                print(f"Reading failure message to file ...")
                 print(json.load(f))
         except Exception as e:
             print(f"Error reading failure message as dict {e} ...")
