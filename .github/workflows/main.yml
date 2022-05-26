@@ -75,7 +75,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ env.ECR_REPOSITORY }}
-        path: /tmp/artifacts/${{ env.ECR_REPOSITORY }}.tar
+        path: /tmp/${{ env.ECR_REPOSITORY }}.tar
 
   setup-regions:
     name: Set regions
