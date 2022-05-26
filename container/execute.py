@@ -81,7 +81,6 @@ def run_notebook():
 
         if params.get("S3_PATH"):
             params_path = params.get("S3_PATH")
-            # params_dir = os.path.dirname(params_path)
             params_file = os.path.basename(params_path)
 
             print("Downloading params file {}".format(params_path))
@@ -128,17 +127,6 @@ def run_notebook():
 
         trc_data = trc.splitlines()
         ## Returning first error
-        # start_index = 0
-        # for i, l in enumerate(trc_data):
-        #     if l.startswith("Input"):
-        #         start_index = i
-        #         break
-
-        # error_message = trc_data[-2]
-        # for i, l in enumerate(trc_data[start_index:-1]):
-        #     error_message += f"\n{l}"
-        #     if l == "":
-        #         break
         print(error_message)
 
         if not os.getenv(params_var):
@@ -151,7 +139,7 @@ def run_notebook():
         try:
             err_s = err.split(": ")
             try:
-                message = json.loads(err_s[1])  ## Load if dict
+                message = json.loads(err_s[1])
             except:
                 message = err_s[1]
             err_dict = {"error": err_s[0], **{"message": message}}
