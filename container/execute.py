@@ -162,7 +162,7 @@ def run_notebook():
         sys.exit(1)
 
     if not os.path.exists(output_notebook):
-        print("No output notebook was generated")
+        print("No output notebook was generated.")
     else:
         print("Output was written to {}".format(output_notebook))
 
