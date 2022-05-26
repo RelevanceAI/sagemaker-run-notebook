@@ -119,7 +119,7 @@ def run_notebook():
         print("Execution complete")
 
     except Exception as e:
-        # Write out an error file. This will be returned as the ExitMessage in the DescribeProcessingJob result.
+
         trc = traceback.format_exc()
 
         error_message = "Exception during processing: " + str(e) + "\n" + trc
@@ -128,6 +128,7 @@ def run_notebook():
         trc_data = trc.splitlines()
         print(error_message)
 
+        # Write out an error file. This will be returned as the ExitMessage in the DescribeProcessingJob result.
         if not os.getenv(params_var):
             FPATH = ROOT_PATH / "error"
         else:
