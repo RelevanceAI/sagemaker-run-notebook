@@ -126,7 +126,7 @@ def run_notebook():
         # print(str(trc))
 
         trc_data = trc.splitlines()
-        ## Returning first error
+
         print(error_message)
 
         if not os.getenv(params_var):

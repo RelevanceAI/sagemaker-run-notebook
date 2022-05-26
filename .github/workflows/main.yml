@@ -25,7 +25,7 @@ jobs:
           files: |
             container/*
 
-      - name: Get changed files
+      - name: Set Changed Files
         id: changes
         run: |
           echo "::set-output name=file-diff::${{ steps.changed-files.outputs.all_changed_files }}"
