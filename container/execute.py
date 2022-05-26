@@ -164,7 +164,7 @@ def run_notebook():
     if not os.path.exists(output_notebook):
         print("No output notebook was generated.")
     else:
-        print("Output was written to {}".format(output_notebook))
+        print(f"Output was written to {output_notebook}")
 
 
 if __name__ == "__main__":
