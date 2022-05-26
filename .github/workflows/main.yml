@@ -151,7 +151,7 @@ jobs:
     
     - name: Load Docker image
       run: |
-          docker load < ${{ env.ECR_REPOSITORY }}.tar
+          docker load < /tmp/${{ env.ECR_REPOSITORY }}.tar
 
     - name: Tag and push image to Amazon ECR ${{ matrix.region }}
       env:
