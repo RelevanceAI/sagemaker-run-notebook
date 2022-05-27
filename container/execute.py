@@ -32,13 +32,15 @@ output_var = "PAPERMILL_OUTPUT"
 params_var = "PAPERMILL_PARAMS"
 
 ## Local testing -
-PAPERMILL_PARAMS = f"""{
-            "dataset_id": "test-vectorize",
-            "model_id": "clip",
-            "encode_type": "image_urls",
-            "fields": ["product_image"],
-            "authorizationToken": f"{os.getenv('TEST_REGINES_TOKEN')}"
-}"""
+
+
+PAPERMILL_PARAMS = {
+    "dataset_id": "basic_subclustering",
+    "model_id": "mpnet",
+    "encode_type": "text",
+    "fields": ["product_title"],
+    "authorizationToken": f"{os.getenv('TEST_ACTIVATION_TOKEN')}",
+}
 
 ROOT_PATH = Path(__file__).parent
 
@@ -54,7 +56,7 @@ def run_notebook():
         output_notebook = os.environ[output_var]
 
         if not os.getenv(params_var):
-            params = json.loads(PAPERMILL_PARAMS)
+            params = PAPERMILL_PARAMS
         else:
             params = json.loads(os.environ[params_var])
 
