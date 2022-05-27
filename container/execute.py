@@ -37,7 +37,7 @@ PAPERMILL_PARAMS = f"""{
             "model_id": "clip",
             "encode_type": "image_urls",
             "fields": ["product_image"],
-            "authorizationToken":"{os.environ['TEST_REGINES_TOKEN']}"
+            "authorizationToken": f"{os.getenv('TEST_REGINES_TOKEN')}"
 }"""
 
 ROOT_PATH = Path(__file__).parent
