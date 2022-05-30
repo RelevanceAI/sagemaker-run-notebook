@@ -288,7 +288,7 @@ Resources:
       FunctionName:  {"Fn::Join": ["-", ["RunNotebook", {"Ref": "Stage"}]]}
       Description: A function to run Jupyter notebooks using SageMaker processing jobs
       Handler: index.lambda_handler
-      Runtime: python3.7
+      Runtime: python3.8
       Role: {"Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] }
       Timeout: 30
       Code:

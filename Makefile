@@ -13,7 +13,7 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-STAGE ?= dev ## dev, stg, prd
+STAGE ?= stg ## dev, stg, prd
 REGION ?= ap-southeast-2 ## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 
