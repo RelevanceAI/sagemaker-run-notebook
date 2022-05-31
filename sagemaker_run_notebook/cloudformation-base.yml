@@ -277,6 +277,8 @@ Resources:
                   - sagemaker:CreateProcessingJob
                   - iam:PassRole
                 Resource: '*'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
   InvokeNotebookLambdaFromEventBridge:
     Type: AWS::Lambda::Permission
     DependsOn: InvokeNotebookLambda
