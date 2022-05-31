@@ -82,7 +82,7 @@ Resources:
   ExecuteNotebookClientRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookClientRole", {"Ref": "AWS::Region"}, {"Ref": "Environment"}]]}
+      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookClientRole", {"Ref": "Environment"}, {"Ref": "AWS::Region"}]]}
       Description: A minimal role that lets the user run notebooks on demand or on a scheduler
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -96,7 +96,7 @@ Resources:
   ExecuteNotebookClientPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
-      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookClient", {"Ref": "AWS::Region"}, {"Ref": "Environment"}]]}
+      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookClient", {"Ref": "Environment"}, {"Ref": "AWS::Region"}]]}
       Roles: 
         - !Ref ExecuteNotebookClientRole
       PolicyDocument:
@@ -151,7 +151,7 @@ Resources:
   BasicExecuteNotebookRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["BasicExecuteNotebookRole", {"Ref": "AWS::Region"}, {"Ref": "Environment"}]]}
+      RoleName: {"Fn::Join": ["-", ["BasicExecuteNotebookRole", {"Ref": "Environment"}, {"Ref": "AWS::Region"}]]}
       Description: A minimal role used as the default for running the notebook container in SageMaker Processing
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -165,7 +165,7 @@ Resources:
   ExecuteNotebookContainerPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
-      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookContainerPolicy", {"Ref": "AWS::Region"}, {"Ref": "Environment"}]]}
+      ManagedPolicyName: {"Fn::Join": ["-", ["ExecuteNotebookContainerPolicy", {"Ref": "Environment"}, {"Ref": "AWS::Region"}]]}
       Roles: 
         - !Ref BasicExecuteNotebookRole
       PolicyDocument:
@@ -211,7 +211,7 @@ Resources:
   ContainerBuildRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookCodeBuildRole", {"Ref": "AWS::Region"}, {"Ref": "Environment"}]]}
+      RoleName: {"Fn::Join": ["-", ["ExecuteNotebookCodeBuildRole", {"Ref": "Environment"}, {"Ref": "AWS::Region"}]]}
       Description: The role for building containers to be used with sagemaker_run_notebook
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -256,7 +256,7 @@ Resources:
   LambdaExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: {"Fn::Join": ["-", ["RunNotebookLambdaExecutionRole", {"Ref": "AWS::Region"}, {"Ref": "Environment"}]]}
+      RoleName: {"Fn::Join": ["-", ["RunNotebookLambdaExecutionRole", {"Ref": "Environment"}, {"Ref": "AWS::Region"}]]}
       Description: The role for running the sagemaker_run_notebook lambda
       AssumeRolePolicyDocument:
         Version: 2012-10-17
