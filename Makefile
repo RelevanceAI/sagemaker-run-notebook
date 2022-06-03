@@ -13,7 +13,7 @@
 
 .PHONY: clean artifacts release link install test run cfntemplate docs
 
-ENVIRONMENT ?= development 	## sandbox, development, production
+ENVIRONMENT ?= sandbox ## sandbox/dev/prod
 AWS_REGION ?= ap-southeast-2  	## ap-southeast-2, us-east-1
 TAG ?= $(date +%Y%m%d%H%M%S)
 AWS_PROFILE ?= Relevance-AI.WorkflowsAdminAccess
