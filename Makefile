@@ -22,6 +22,10 @@ release: install test docs
 	make artifacts
 
 install: clean
+	# Use the -e option to allow the code to be instrumented for code coverage
+	pip install -e "." 
+
+install-dev: clean
 	# Use the -e[dev] option to allow the code to be instrumented for code coverage
 	pip install -e ".[dev]"
 	pre-commit install
