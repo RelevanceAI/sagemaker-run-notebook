@@ -3,7 +3,7 @@ name: Deploy Sagemaker ECR
 
 on:
   push:
-      branches: [ main, development ]
+      branches: [ master, development ]
   pull_request:
 
 env:
