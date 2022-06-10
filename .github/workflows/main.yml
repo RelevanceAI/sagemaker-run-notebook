@@ -1,4 +1,3 @@
-
 name: Deploy Sagemaker ECR
 
 on:
@@ -97,7 +96,7 @@ jobs:
     - name: Set Github env var based on branch name
       id: set-environment
       run: |
-        BRANCH_NAME=${{ github.ref_name }}
+        BRANCH_NAME=${{ github.head_ref }}
         echo $BRANCH_NAME
         if [[ $BRANCH_NAME == "master" ]]; then
           export ENVIRONMENT="prod"
