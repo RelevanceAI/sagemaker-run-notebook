@@ -286,7 +286,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: {"Fn::Join": ["-", ["RunNotebook", {"Ref": "Environment"}]]}
       Principal: events.amazonaws.com
-      SourceArn: {"Fn::Join": [":", ["arn:aws:events", {"Ref": "AWS::Region"}, {"Ref": "AWS::AccountId"}, "rule/RunNotebook-", {"Ref": "Environment"}, '*']]}
+      SourceArn: {"Fn::Join": [":", ["arn:aws:events", {"Ref": "AWS::Region"}, {"Ref": "AWS::AccountId"}, "rule/RunNotebook-", {"Fn::Join": ["", [{"Ref": "Environment"}, "*"]]}]]}
   InvokeNotebookLambda:
     Type: AWS::Lambda::Function
     Properties:
