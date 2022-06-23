@@ -14,3 +14,4 @@ vectorhub[clip]>=1.8.3
 vectorhub[encoders-text-sentence-transformers]>=1.8.3
 vectorhub[encoders-image-tfhub]>=1.8.3
 protobuf==3.20.1
+keybert==0.5.1
