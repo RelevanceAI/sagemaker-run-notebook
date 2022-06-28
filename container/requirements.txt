@@ -9,8 +9,9 @@ ipykernel
 papermill==2.3.4
 # scikit-learn
 matplotlib
-RelevanceAI[notebook, umap]==2.3.5
+RelevanceAI[notebook, umap]==2.4.2
 vectorhub[clip]>=1.8.3
 vectorhub[encoders-text-sentence-transformers]>=1.8.3
 vectorhub[encoders-image-tfhub]>=1.8.3
 protobuf==3.20.1
+flair==0.11.1
